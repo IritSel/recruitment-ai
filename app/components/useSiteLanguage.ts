@@ -1,0 +1,1 @@
+"use client";import{useEffect,useState}from"react";export function useSiteLanguage(){const[l,setL]=useState("he");useEffect(()=>{const read=()=>setL(localStorage.getItem("site-language")||"he");read();window.addEventListener("languagechange",read);return()=>window.removeEventListener("languagechange",read)},[]);return l as "he"|"en"}
