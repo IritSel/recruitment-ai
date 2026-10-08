@@ -6,3 +6,8 @@
 .languageSwitch{position:fixed;left:18px;bottom:18px;z-index:1000;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 10px;box-shadow:0 8px 24px rgba(15,23,42,.1);display:flex;gap:6px;align-items:center;font-size:12px}.languageSwitch button{border:0;background:transparent;cursor:pointer;color:var(--muted);font:inherit}.languageSwitch button.active{color:var(--ink);font-weight:800}html[dir="ltr"] body{text-align:left}html[dir="rtl"] body{text-align:right}
 
 .backLink{display:inline-block;font-size:14px;margin-bottom:16px;color:var(--muted);text-decoration:none}
+
+.cvEntryActions{display:grid;gap:12px;width:100%}
+.cvEntryActions .cvEntryButton{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;padding:12px 18px;border-radius:12px;font:inherit;font-weight:600;line-height:1.4;text-align:center;cursor:pointer;box-sizing:border-box}
+.cvEntryActions .cvEntrySecondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.cvEntryActions .cvEntrySecondary:hover{background:#f4f8f8;border-color:var(--teal)}
