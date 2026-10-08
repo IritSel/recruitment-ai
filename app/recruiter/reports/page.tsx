@@ -1,1 +1,17 @@
-"use client";import Link from"next/link";import{useSiteLanguage}from"../../components/useSiteLanguage";export default function P(){const en=useSiteLanguage()==="en";return <main className="shell"><section style={{padding:"45px 0"}}><Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link><h1>{en?"Reports":"דוחות"}</h1><div className="choice"><h2>{en?"Recruitment overview":"דוח גיוס מרוכז"}</h2><p>{en?"The full version will include funnel data, process times and actionable insights in one PDF.":"בגרסה המלאה יופק כאן PDF אחד עם משפך, זמני תהליך ותובנות פעולה."}</p><button className="button" disabled style={{opacity:.5}}>{en?"Generate PDF — not connected yet":"הפקת PDF — עדיין לא מחובר"}</button></div></section></main>
+"use client";
+import Link from "next/link";
+import { useSiteLanguage } from "../../components/useSiteLanguage";
+export default function ReportsPage() {
+ const en = useSiteLanguage() === "en";
+ return <main className="shell">
+  <section style={{padding:"45px 0"}}>
+   <Link href="/recruiter">← {en ? "Dashboard" : "דשבורד"}</Link>
+   <h1>{en ? "Reports" : "דוחות"}</h1>
+   <div className="choice">
+    <h2>{en ? "Recruitment overview" : "דוח גיוס מרוכז"}</h2>
+    <p>{en ? "The full version will include funnel data, process times and actionable insights in one PDF." : "בגרסה המלאה יופק כאן PDF אחד עם משפך, זמני תהליך ותובנות פעולה."}</p>
+    <button className="button" disabled style={{opacity:.5}}>{en ? "Generate PDF — not connected yet" : "הפקת PDF — עדיין לא מחובר"}</button>
+   </div>
+  </section>
+ </main>;
+}
