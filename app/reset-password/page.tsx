@@ -1,0 +1,17 @@
+"use client";
+import Link from "next/link";
+import {useEffect,useState} from "react";
+import {getSupabase} from "../lib/supabase";
+import {useSiteLanguage} from "../components/useSiteLanguage";
+export default function ResetPassword(){
+ const en=useSiteLanguage()==="en";
+ const [ready,setReady]=useState(false),[busy,setBusy]=useState(false),[password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[error,setError]=useState(""),[done,setDone]=useState(false);
+ useEffect(()=>{const client=getSupabase();let active=true;
+ const check=async()=>{try{const url=new URL(window.location.href);const code=url.searchParams.get("code");const tokenHash=url.searchParams.get("token_hash");const type=url.searchParams.get("type");if(code){const {error}=await client.auth.exchangeCodeForSession(code);if(error)throw error;window.history.replaceState({},"","/reset-password")}else if(tokenHash&&type==="recovery"){const {error}=await client.auth.verifyOtp({token_hash:tokenHash,type:"recovery"});if(error)throw error;window.history.replaceState({},"","/reset-password")}
+ const {data}=await client.auth.getSession();if(active)setReady(Boolean(data.session));
+ }catch{if(active)setError(en?"This link is invalid or expired. Request a new reset link.":"הקישור אינו תקין או שפג תוקפו. יש לבקש קישור חדש.")}};
+ void check();const {data:listener}=client.auth.onAuthStateChange((event)=>{if(active&&event==="PASSWORD_RECOVERY")setReady(true)});return()=>{active=false;listener.subscription.unsubscribe()}},[en]);
+ async function submit(e:React.FormEvent){e.preventDefault();setError("");if(password.length<8){setError(en?"Use at least 8 characters.":"יש להזין לפחות 8 תווים.");return}if(password!==confirm){setError(en?"Passwords do not match.":"הסיסמאות אינן תואמות.");return}setBusy(true);try{const client=getSupabase();const {error:err}=await client.auth.updateUser({password});if(err)throw err;await client.auth.signOut();setDone(true)}catch(err){setError(err instanceof Error?err.message:"Unable to update password")}finally{setBusy(false)}}
+ return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link></nav><section className="choice" style={{maxWidth:540,margin:"70px auto"}}><h1>{en?"Choose a new password":"בחירת סיסמה חדשה"}</h1>{done?<p role="status">{en?"Your password was updated.":"הסיסמה עודכנה בהצלחה."} <Link href="/login">{en?"Sign in":"כניסה לחשבון"}</Link></p>:ready?<form onSubmit={submit} style={{display:"grid",gap:12}}><label htmlFor="new-password">{en?"New password":"סיסמה חדשה"}</label><input id="new-password" type="password" autoComplete="new-password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} style={field}/><label htmlFor="confirm-password">{en?"Confirm password":"אימות סיסמה"}</label><input id="confirm-password" type="password" autoComplete="new-password" required minLength={8} value={confirm} onChange={e=>setConfirm(e.target.value)} style={field}/><button className="button" disabled={busy}>{busy?(en?"Saving...":"שומר..."):(en?"Update password":"עדכון סיסמה")}</button></form>:<p>{error||(en?"Checking your reset link...":"בודקים את קישור האיפוס...")}</p>}{ready&&error&&<p role="alert" style={{color:"#b42318"}}>{error}</p>}{!ready&&!done&&<Link href="/forgot-password">{en?"Request a new link":"בקשת קישור חדש"}</Link>}</section></main>
+}
+const field={padding:14,border:"1px solid #ddd",borderRadius:12,font:"inherit"};
