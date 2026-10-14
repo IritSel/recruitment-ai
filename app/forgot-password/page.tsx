@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
-import {useState} from "react";
-import {useSearchParams} from "next/navigation";
+import {useEffect,useState} from "react";
 import {getSupabase} from "../lib/supabase";
 import {useSiteLanguage} from "../components/useSiteLanguage";
 export default function ForgotPassword(){
- const en=useSiteLanguage()==="en",params=useSearchParams();
- const role=params.get("role")==="recruiter"?"recruiter":"candidate";
+ const en=useSiteLanguage()==="en";
+ const [role,setRole]=useState("candidate");
+ useEffect(()=>{setRole(new URLSearchParams(window.location.search).get("role")==="recruiter"?"recruiter":"candidate")},[]);
  const [email,setEmail]=useState(""),[busy,setBusy]=useState(false),[sent,setSent]=useState(false),[error,setError]=useState("");
  async function submit(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");
   try{const {error:err}=await getSupabase().auth.resetPasswordForEmail(email.trim(),{redirectTo:window.location.origin+"/reset-password"});if(err)throw err;setSent(true)}
