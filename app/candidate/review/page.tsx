@@ -11,7 +11,7 @@ export default function Review(){
  const labels:Record<string,string>=en?{fullName:"Full name",email:"Email",phone:"Phone",summary:"Professional summary",education:"Education",training:"Training",skills:"Skills",languages:"Languages"}:{fullName:"שם מלא",email:"אימייל",phone:"טלפון",summary:"תקציר מקצועי",education:"השכלה",training:"הכשרות",skills:"כישורים",languages:"שפות"};
  const update=(key:keyof Profile,value:string)=>setProfile(x=>x?{...x,[key]:value}:x);
  const save=()=>{if(!profile)return;sessionStorage.setItem("candidate-profile",JSON.stringify(profile));window.location.href="/candidate/jobs";};
- return <main className="shell"><nav className="nav"><Link className="brand" href="/">Recruitment AI</Link></nav><section className="choice" style={{maxWidth:760,margin:"60px auto"}}>
+ return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link></nav><section className="choice" style={{maxWidth:760,margin:"60px auto"}}>
  <Link href="/candidate">← {en?"Back":"חזרה"}</Link>
  <h1>{en?"Review your CV details":"בדיקת הפרטים שחולצו מקורות החיים"}</h1>
  {!profile?<p>{en?"No analyzed CV found. Upload or paste a CV first.":"לא נמצא ניתוח קורות חיים. יש להעלות קובץ או להדביק טקסט קודם."}</p>:<>
