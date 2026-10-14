@@ -18,7 +18,7 @@ export async function GET(req:NextRequest){
  if(!res.ok){back.searchParams.set("calendar","exchange_failed");return NextResponse.redirect(back)}
  const data=await res.json() as {access_token?:string};
  if(!data.access_token)throw new Error("No access token");
- const check=await fetch("https://www.googleapis.com/calendar/v3/users/me/calendarList?maxResults=1",{headers:{Authorization:"Bearer "+data.access_token},cache:"no-store"});
+ const now=new Date();const later=new Date(now.getTime()+3600000);const check=await fetch("https://www.googleapis.com/calendar/v3/freeBusy",{method:"POST",headers:{Authorization:"Bearer "+data.access_token,"content-type":"application/json"},body:JSON.stringify({timeMin:now.toISOString(),timeMax:later.toISOString(),items:[{id:"primary"}]}),cache:"no-store"});
  back.searchParams.set("calendar",check.ok?"verified":"scope_error");
  }catch{back.searchParams.set("calendar","error")}
  // Deliberately discard OAuth tokens until encrypted per-user storage is implemented.
