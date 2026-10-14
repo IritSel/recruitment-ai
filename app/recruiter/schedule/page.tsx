@@ -1,9 +1,14 @@
 "use client";
 import Link from "next/link";
 import {useState} from "react";
+import {getSupabase} from "../../lib/supabase";
 import {useSiteLanguage} from "../../components/useSiteLanguage";
 export default function SchedulePage(){
  const en=useSiteLanguage()==="en";
+ const [connecting,setConnecting]=useState(false);
+ const [error,setError]=useState("");
+ const calendarStatus=typeof window!=="undefined"?new URLSearchParams(window.location.search).get("calendar"):null;
+ async function connectCalendar(){setConnecting(true);setError("");try{const {data}=await getSupabase().auth.getSession();if(!data.session)throw new Error(en?"Sign in as an approved QA recruiter first.":"יש להתחבר תחילה כחשבון מגייסת QA מאושר.");const res=await fetch("/api/calendar/google/start",{method:"POST",headers:{Authorization:"Bearer "+data.session.access_token}});const body=await res.json();if(!res.ok||!body.url)throw new Error(en?"Could not start Google authorization.":"לא ניתן להתחיל את תהליך ההרשאה של Google.");window.location.assign(body.url)}catch(e){setError(e instanceof Error?e.message:"Connection failed");setConnecting(false)}}
  const [kind,setKind]=useState("phone");
  const [duration,setDuration]=useState("20");
  const [buffer,setBuffer]=useState("10");
@@ -16,7 +21,10 @@ export default function SchedulePage(){
  <div className="choice"><h2>{en?"1. Connect your calendar":"1. חיבור היומן"}</h2>
  <p>{en?"Google Calendar is the first planned integration. The connection is not active yet.":"Google Calendar הוא החיבור הראשון שאנחנו בונים. החיבור עדיין אינו פעיל."}</p>
  <div style={{border:"1px solid #ddd6fe",borderRadius:12,padding:16,background:"#faf9ff"}}>
- <b>{en?"Google Calendar — not connected":"Google Calendar — לא מחובר"}</b>
+ <b>{en?"Google Calendar — not yet connected":"Google Calendar — עדיין לא מחובר"}</b>
+ {calendarStatus&&<p role="status" style={{color:calendarStatus==="verified"?"#166534":"#b42318"}}>{calendarStatus==="verified"?(en?"Google authorization and availability check succeeded. Secure connection storage is still pending.":"אישור Google ובדיקת הזמינות הצליחו. עדיין נדרשת שמירה מאובטחת של החיבור."):en?"Google authorization was not completed. Please check your Google OAuth settings.":"תהליך האישור לא הושלם. יש לבדוק את הגדרות OAuth ב־Google."}</p>}
+ <button type="button" className="button" disabled={connecting} onClick={connectCalendar}>{connecting?(en?"Connecting...":"מתחבר..."):(en?"Authorize Google Calendar (QA)":"אישור גישה ל־Google Calendar (QA)")}</button>
+ {error&&<p role="alert" style={{color:"#b42318"}}>{error}</p>
  <p>{en?"Secure Google authorization requires OAuth configuration in Google Cloud.":"כדי להפעיל חיבור מאובטח נדרשת הגדרת OAuth ב־Google Cloud."}</p>
  <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer">{en?"Open Google Cloud credentials":"פתיחת הגדרות Google Cloud"} ↗</a>
  </div></div>
