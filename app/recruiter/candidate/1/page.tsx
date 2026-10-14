@@ -7,6 +7,12 @@ export default function CandidateProfile(){
  const en=useSiteLanguage()==="en";
  const [status,setStatus]=useState("בדיקת מגייסת");
  const [cvOpen,setCvOpen]=useState(true);
+ const [action,setAction]=useState<"phone"|"interview"|"reject"|null>(null);
+ const [date,setDate]=useState("");
+ const [time,setTime]=useState("");
+ const [reason,setReason]=useState("");
+ const [confirmation,setConfirmation]=useState("");
+ const proceed=()=>{if(!action)return;const next=action==="phone"?"שיחת טלפון נקבעה":action==="interview"?"ראיון נקבע":"לא ממשיכים";setStatus(next);setConfirmation(action==="reject"?"ההחלטה תועדה להדגמה בלבד. לא נשלחה הודעת דחייה.":"השלב תועד להדגמה בלבד. לא נשלחה הזמנה ולא נקבע אירוע ביומן.");setAction(null);setDate("");setTime("");setReason("")};
  return <main className="shell"><section style={{maxWidth:980,margin:"40px auto"}}>
  <Link href="/recruiter/jobs/1">→ {en?"Back to job":"חזרה למשרה"}</Link>
  <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",flexWrap:"wrap",marginTop:20}}><div><h1>{example.name}</h1><p>{example.city} · {example.availability}</p></div><span className="eyebrow">{en?"DEMO DATA — NOT A REAL CV":"נתוני הדגמה — לא קורות חיים אמיתיים"}</span></div>
@@ -25,6 +31,20 @@ export default function CandidateProfile(){
  <h3>{en?"Availability":"זמינות"}</h3><p>{example.availability}</p>
  <p style={{fontSize:13,color:"#64748b"}}>{en?"This is a complete sample profile, not an uploaded CV or a verified candidate record.":"זהו פרופיל הדגמה מלא, לא מסמך קורות חיים שהועלה ולא רשומת מועמדת מאומתת."}</p>
  </article>}</div>
- <div className="choice"><h2>{en?"Recruitment decision":"המשך טיפול"}</h2><p><b>{en?"Status":"סטטוס"}:</b> {status}</p><div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button className="button" onClick={()=>setStatus("שיחת טלפון")}>{en?"Phone screening":"שיחת טלפון 15–20 דק׳"}</button><button className="button" onClick={()=>setStatus("הוזמנה לראיון")}>{en?"Invite to interview":"הזמנה לראיון"}</button><button type="button" onClick={()=>setStatus("התהליך הסתיים")} style={{padding:12}}>{en?"Do not proceed":"לא ממשיכים"}</button></div><p style={{fontSize:13,color:"#64748b"}}>{en?"Status changes are temporary demo interactions; no message is sent.":"שינויי הסטטוס הם הדגמה בלבד ואינם שולחים הודעות למועמדת."}</p></div>
+ <div className="choice"><h2>{en?"Recruitment decision":"המשך טיפול"}</h2><p><b>{en?"Status":"סטטוס"}:</b> {status}</p>
+ <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+ <button type="button" className="button" onClick={()=>{setAction("phone");setConfirmation("")}}>{en?"Phone screening":"שיחת טלפון 15–20 דק׳"}</button>
+ <button type="button" className="button" onClick={()=>{setAction("interview");setConfirmation("")}}>{en?"Invite to interview":"הזמנה לראיון"}</button>
+ <button type="button" onClick={()=>{setAction("reject");setConfirmation("")}} style={{padding:12,border:"1px solid #ddd6fe",borderRadius:9,background:"#fff"}}>{en?"Do not proceed":"לא ממשיכים"}</button></div>
+ {action&&<form onSubmit={e=>{e.preventDefault();proceed()}} style={{marginTop:20,padding:20,border:"1px solid #ddd6fe",borderRadius:12,display:"grid",gap:12}}>
+ <h3>{action==="phone"?(en?"Schedule phone screening":"תיאום שיחה טלפונית"):action==="interview"?(en?"Plan interview":"תיאום ראיון"):(en?"End candidacy":"סיום מועמדות")}</h3>
+ {action!=="reject"?<><label>{en?"Proposed date":"תאריך מוצע"} <input required type="date" value={date} onChange={e=>setDate(e.target.value)} style={{padding:10,border:"1px solid #ddd6fe",borderRadius:8,marginInlineStart:8}}/></label>
+ <label>{en?"Proposed time":"שעה מוצעת"} <input required type="time" value={time} onChange={e=>setTime(e.target.value)} style={{padding:10,border:"1px solid #ddd6fe",borderRadius:8,marginInlineStart:8}}/></label></>:
+ <label>{en?"Reason (internal, optional)":"סיבה פנימית (לא חובה)"}<textarea value={reason} onChange={e=>setReason(e.target.value)} rows={3} style={{display:"block",width:"100%",padding:10,border:"1px solid #ddd6fe",borderRadius:8}}/></label>}
+ <p style={{fontSize:13,color:"#64748b"}}>{en?"QA demo: This action does not send email, update Supabase, or create a calendar event.":"סביבת QA: הפעולה אינה שולחת הודעה, אינה מעדכנת את Supabase ואינה יוצרת אירוע ביומן."}</p>
+ <div style={{display:"flex",gap:10,flexWrap:"wrap"}}><button type="submit" className="button">{en?"Confirm demo action":"אישור פעולה להדגמה"}</button><button type="button" onClick={()=>setAction(null)} style={{padding:10}}>{en?"Cancel":"ביטול"}</button></div>
+ </form>}
+ {confirmation&&<p role="status" style={{color:"#276a56",marginTop:14}}>{confirmation}</p>}
+ </div>
  </section></main>
 }
