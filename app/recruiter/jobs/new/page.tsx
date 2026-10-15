@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
 import {useState} from "react";
+import {useRouter} from "next/navigation";
 type Priority="must"|"preferred"|"flexible";
 type Criterion={id:number;text:string;priority:Priority};
 const choices=[{value:"must",label:"חובה"},{value:"preferred",label:"יתרון"},{value:"flexible",label:"גמיש"}] as const;
 const field:React.CSSProperties={padding:14,border:"1px solid #ddd6fe",borderRadius:12,font:"inherit",width:"100%",boxSizing:"border-box"};
 export default function NewJob(){
+ const router=useRouter();
  const [step,setStep]=useState(0);
  const [title,setTitle]=useState(""),[desc,setDesc]=useState(""),[salary,setSalary]=useState(""),[employment,setEmployment]=useState("משרה מלאה");
  const [criteria,setCriteria]=useState<Criterion[]>([]);
@@ -14,7 +16,7 @@ export default function NewJob(){
  const [saved,setSaved]=useState(false);
  function add(){const text=newText.trim();if(!text)return;setCriteria(old=>[...old,{id:nextId,text,priority:"flexible"}]);setNextId(n=>n+1);setNewText("")}
  function change(id:number,patch:Partial<Criterion>){setCriteria(old=>old.map(c=>c.id===id?{...c,...patch}:c))}
- function saveQa(){try{localStorage.setItem("how-qa-job-draft",JSON.stringify({title,description:desc,salary,employment,criteria}));setSaved(true)}catch{setSaved(false)}}
+ function publishQa(){try{const job={id:"qa-"+Date.now(),title,description:desc,salary,employment,criteria:criteria.map(c=>({...c})),createdAt:new Date().toISOString(),qa:true};const raw=localStorage.getItem("how-qa-published-jobs");let existing:unknown=[];try{existing=raw?JSON.parse(raw):[]}catch{}const jobs=Array.isArray(existing)?existing:[];localStorage.setItem("how-qa-published-jobs",JSON.stringify([job,...jobs]));router.push("/recruiter/jobs?qaPublished=1")}catch{setSaved(true)}}
  return <main className="shell"><section className="choice" style={{maxWidth:760,margin:"55px auto",display:"grid",gap:16}}>
  <button type="button" onClick={()=>step===1?setStep(0):window.location.assign("/recruiter/jobs")} style={{border:0,background:"transparent",cursor:"pointer",justifySelf:"start"}}>→ {step===1?"חזרה לעריכה":"חזרה למשרות"}</button>
  <span className="eyebrow">{step===1?"בדיקת פרופיל המשרה · QA":"יצירת משרה · QA"}</span>
@@ -47,9 +49,9 @@ export default function NewJob(){
  </div>)}
  <button type="button" onClick={()=>setStep(0)} style={{border:"1px solid #ddd6fe",background:"white",padding:12,borderRadius:10,cursor:"pointer"}}>עריכת הדרישות</button>
  </section>
- <div style={{padding:12,borderRadius:10,background:"#f8fafc",fontSize:13}}>בדיקת QA בלבד: שמירת טיוטה בדפדפן, ללא פרסום משרה או הפעלת סינון מועמדות.</div>
- {saved&&<p role="status" style={{color:"#166534"}}>טיוטת QA נשמרה בדפדפן. הסיווגים: {criteria.map(c=>c.text+" — "+choices.find(x=>x.value===c.priority)?.label).join(" | ")||"אין דרישות"}.</p>}
- <button className="button" type="button" onClick={saveQa} disabled={criteria.some(c=>!c.text.trim())}>שמירת טיוטת QA</button>
+ <div style={{padding:12,borderRadius:10,background:"#f8fafc",fontSize:13}}>פרסום QA: המשרה תופיע ברשימת המשרות בדפדפן זה בלבד. לא תפורסם למועמדות אמיתיות ולא תפעיל סינון.</div>
+ {saved&&<p role="status" style={{color:"#166534"}}>לא ניתן לשמור את משרת ה־QA בדפדפן. נסי שוב. הסיווגים: {criteria.map(c=>c.text+" — "+choices.find(x=>x.value===c.priority)?.label).join(" | ")||"אין דרישות"}.</p>}
+ <button className="button" type="button" onClick={publishQa} disabled={criteria.some(c=>!c.text.trim())}>פרסום משרת QA וצפייה ברשימה</button>
  <Link href="/recruiter/jobs">חזרה לרשימת המשרות</Link>
  </>}
  </section></main>
