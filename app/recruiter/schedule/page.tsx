@@ -28,6 +28,15 @@ export default function SchedulePage(){
  const dateObj=useMemo(()=>day?new Date(day+"T12:00:00"):new Date(),[day]);
  const isWorking=settings.days.includes(dateObj.getDay());
  const slots=useMemo(()=>{if(!isWorking||minutes(settings.end)<=minutes(settings.start))return [];const arr:{time:string;busy:boolean;reason:string}[]=[];for(let m=minutes(settings.start);m+duration<=minutes(settings.end);m+=15){const breakOverlap=minutes(settings.breakEnd)>minutes(settings.breakStart)&&m<minutes(settings.breakEnd)&&m+duration>minutes(settings.breakStart);const meeting=appointments.find(a=>a.date===day&&m<minutes(a.time)+a.minutes&&m+duration>minutes(a.time));arr.push({time:clock(m),busy:Boolean(breakOverlap||meeting),reason:meeting?"פגישה קיימת":breakOverlap?"הפסקה":""})}return arr},[settings,appointments,day,isWorking,duration]);
+ const weekDates=useMemo(()=>{const base=new Date((day||localDate(new Date()))+"T12:00:00");base.setDate(base.getDate()-base.getDay());return Array.from({length:7},(_,i)=>{const d=new Date(base);d.setDate(base.getDate()+i);return {date:localDate(d),weekday:i,number:d.getDate()}})},[day]);
+ const weekHours=useMemo(()=>{const start=minutes(settings.start),end=minutes(settings.end);const arr:number[]=[];for(let t=start;t<end;t+=30)arr.push(t);return arr},[settings.start,settings.end]);
+ function slotInfo(date:string,weekday:number,startAt:number){
+  if(!settings.days.includes(weekday))return {busy:true,reason:"לא פעיל",appointment:null as Appointment|null};
+  const breakBusy=minutes(settings.breakEnd)>minutes(settings.breakStart)&&startAt<minutes(settings.breakEnd)&&startAt+duration>minutes(settings.breakStart);
+  const meeting=appointments.find(a=>a.date===date&&startAt<minutes(a.time)+a.minutes&&startAt+duration>minutes(a.time))||null;
+  const outside=startAt+duration>minutes(settings.end);
+  return {busy:Boolean(breakBusy||meeting||outside),reason:meeting?"תפוס":breakBusy?"הפסקה":outside?"לא זמין":"פנוי",appointment:meeting};
+ }
  const dayAppointments=appointments.filter(a=>a.date===day).sort((a,b)=>a.time.localeCompare(b.time));
  function saveSettings(v:Settings){setSettings(v);localStorage.setItem("how-qa-calendar-settings",JSON.stringify(v));setMessage("הגדרות הזמינות נשמרו בדפדפן לצורכי QA.")}
  function saveAppointment(){
@@ -55,13 +64,30 @@ export default function SchedulePage(){
  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
  {([["start","תחילת יום"],["end","סיום יום"],["breakStart","תחילת הפסקה"],["breakEnd","סיום הפסקה"]] as const).map(([k,label])=><label key={k}>{label}<input type="time" style={field} value={settings[k]} onChange={e=>saveSettings({...settings,[k]:e.target.value})}/></label>)}
  {(["phone","video","onsite"] as const).map(k=><label key={k}>משך {k==="phone"?"שיחה טלפונית":k==="video"?"ראיון וידאו":"ראיון פרונטלי"}<select style={field} value={settings.durations[k]} onChange={e=>saveSettings({...settings,durations:{...settings.durations,[k]:Number(e.target.value)}})}>{[15,20,30,45,60].map(x=><option key={x} value={x}>{x} דקות</option>)}</select></label>)}</div></div>
- <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
- <div style={{...boxStyle,display:"grid",gap:12,alignContent:"start"}}><h2 style={{margin:0}}>זמינות ליום נבחר</h2><label>תאריך<input type="date" style={field} value={day} onChange={e=>{setDay(e.target.value);setSelected("");setMessage("")}}/></label>
- {!isWorking?<p>יום זה מוגדר כיום לא פעיל. אפשר לשנות את ימי העבודה למעלה.</p>:<div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8}}>
- {slots.map(s=><button key={s.time} type="button" disabled={s.busy} onClick={()=>setSelected(s.time)} title={s.reason||"פנוי"} style={{padding:"12px 4px",borderRadius:10,border:selected===s.time?"2px solid #6147f5":"1px solid #ddd6fe",background:s.busy?"#f1f5f9":selected===s.time?"#ede9fe":"#ecfdf5",color:s.busy?"#64748b":"#172554",cursor:s.busy?"not-allowed":"pointer"}}>{s.time}<small style={{display:"block"}}>{s.busy?s.reason:"פנוי"}</small></button>)}</div>}
- {slots.length===0&&isWorking&&<p>אין חלונות זמינים בהגדרות הנוכחיות.</p>}
+ <div style={{...boxStyle,display:"grid",gap:12}}>
+ <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+ <h2 style={{margin:0}}>יומן שבועי</h2>
+ <div style={{display:"flex",gap:8,alignItems:"center"}}>
+ <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()-7);setDay(localDate(d));setSelected("")}}>שבוע קודם</button>
+ <button type="button" onClick={()=>{setDay(localDate(new Date()));setSelected("")}}>היום</button>
+ <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()+7);setDay(localDate(d));setSelected("")}}>שבוע הבא</button>
+ </div></div>
+ <p style={{margin:0,color:"#64748b",fontSize:13}}>לחצי על שעה פנויה כדי לקבוע ראיון ידני. הזמנה אוטומטית למועמדת עדיין בפיתוח.</p>
+ <div style={{overflowX:"auto"}}>
+ <div style={{display:"grid",gridTemplateColumns:"60px repeat(7,minmax(92px,1fr))",gap:4,minWidth:730}}>
+ <div/>
+ {weekDates.map(d=><div key={d.date} style={{padding:10,textAlign:"center",borderRadius:9,background:d.date===day?"#ede9fe":"#f8fafc",fontWeight:600}}>{dayNames[d.weekday]} {d.number}</div>)}
+ {weekHours.flatMap(hour=>[
+ <div key={"h-"+hour} style={{padding:8,fontSize:12,color:"#64748b"}}>{clock(hour)}</div>,
+ ...weekDates.map(d=>{const info=slotInfo(d.date,d.weekday,hour);const chosen=day===d.date&&selected===clock(hour);return <button key={d.date+"-"+hour} type="button" disabled={info.busy} title={info.appointment?info.appointment.name+" · "+info.appointment.job:info.reason} onClick={()=>{setDay(d.date);setSelected(clock(hour));setMessage("")}} style={{minHeight:52,padding:5,borderRadius:8,border:chosen?"2px solid #6147f5":"1px solid #e4ddff",background:info.appointment?"#e9e3ff":info.busy?"#f1f5f9":"#f0fdf4",cursor:info.busy?"not-allowed":"pointer",color:"#243047",fontSize:11,overflow:"hidden"}}>
+ {info.appointment?<><strong>{info.appointment.name}</strong><span style={{display:"block"}}>{info.appointment.time} · {info.appointment.minutes} דק׳</span></>:info.busy?info.reason:chosen?"נבחר":"פנוי"}
+ </button>})
+ ])}
+ </div></div>
+ <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:12,color:"#64748b"}}><span>🟩 פנוי</span><span>🟪 פגישה</span><span>⬜ חסום / הפסקה</span></div>
  </div>
- <div style={{...boxStyle,display:"grid",gap:12,alignContent:"start"}}><h2 style={{margin:0}}>קביעת ראיון QA</h2><label>שם המועמדת<input style={field} value={name} onChange={e=>setName(e.target.value)}/></label><label>משרה<input style={field} value={job} onChange={e=>setJob(e.target.value)}/></label><label>סוג ראיון<select style={field} value={type} onChange={e=>{setType(e.target.value as "phone"|"video"|"onsite");setSelected("")}}><option value="phone">טלפוני</option><option value="video">וידאו (QA ללא קישור Meet)</option><option value="onsite">פרונטלי</option></select></label>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+ <div style={{...boxStyle,display:"grid",gap:12,alignContent:"start"}}><h2 style={{margin:0}}>קביעת ראיון QA</h2><p>תאריך נבחר: <strong>{day}</strong></p><label>שם המועמדת<input style={field} value={name} onChange={e=>setName(e.target.value)}/></label><label>משרה<input style={field} value={job} onChange={e=>setJob(e.target.value)}/></label><label>סוג ראיון<select style={field} value={type} onChange={e=>{setType(e.target.value as "phone"|"video"|"onsite");setSelected("")}}><option value="phone">טלפוני</option><option value="video">וידאו (QA ללא קישור Meet)</option><option value="onsite">פרונטלי</option></select></label>
  <p>משך הפגישה לפי סוג הראיון: <strong>{duration} דקות</strong></p><p>שעה שנבחרה: <strong>{selected&&!active?selected:"לא נבחרה שעה פנויה"}</strong></p><button type="button" className="button" disabled={!selected||Boolean(active)||!ready} onClick={saveAppointment}>קביעת ראיון ביומן QA</button>
  {message&&<p role="status" style={{color:"#285b54"}}>{message}</p>}
  </div></div>
