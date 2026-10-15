@@ -21,7 +21,7 @@ export default function SchedulePage(){
  const [name,setName]=useState("נועה כהן");
  const [job,setJob]=useState("שירות לקוחות");
  const [type,setType]=useState<"phone"|"video"|"onsite">("phone");
- const duration=durations[type];
+ const duration=settings.durations[type];
  const [message,setMessage]=useState("");
  const [ready,setReady]=useState(false);
  useEffect(()=>{try{const s=localStorage.getItem("how-qa-calendar-settings");if(s){const v=JSON.parse(s);if(v&&Array.isArray(v.days))setSettings({...defaults,...v,durations:{...defaults.durations,...v.durations}})}const a=localStorage.getItem("how-qa-calendar-appointments");if(a){const v=JSON.parse(a);if(Array.isArray(v))setAppointments(v)}const query=new URLSearchParams(location.search);const d=query.get("date");const id=query.get("appointment");setDay(d||localDate(new Date()));if(id)setSelected(id);if(query.get("candidate")==="noa")setName("נועה כהן")}catch{setDay(localDate(new Date()))}setReady(true)},[]);
