@@ -7,8 +7,8 @@ type Appointment={id:string;date:string;time:string;minutes:number;name:string;j
 type Settings={days:number[];start:string;end:string;breakStart:string;breakEnd:string;breakEnabled:boolean;durations:{phone:number;video:number;onsite:number}};
 const defaults:Settings={days:[0,1,2,3,4],start:"09:00",end:"17:00",breakStart:"12:30",breakEnd:"13:00",breakEnabled:false,durations:{phone:15,video:30,onsite:45}};
 const dayNames=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
-const boxStyle:React.CSSProperties={border:"1px solid #e4ddff",borderRadius:14,padding:16,background:"#fff"};
-const field:React.CSSProperties={border:"1px solid #ddd6fe",borderRadius:9,padding:9,font:"inherit",width:"100%",boxSizing:"border-box"};
+const boxStyle:React.CSSProperties={border:"1px solid #e4ddff",borderRadius:12,padding:11,background:"#fff"};
+const field:React.CSSProperties={border:"1px solid #ddd6fe",borderRadius:8,padding:"6px 8px",font:"inherit",fontSize:13,width:"100%",boxSizing:"border-box"};
 function minutes(s:string){const [h,m]=s.split(":").map(Number);return h*60+m}
 function clock(n:number){return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
 function localDate(d:Date){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -60,30 +60,30 @@ export default function SchedulePage(){
  }catch{setMessage("לא ניתן לשמור את הראיון בדפדפן. הפגישה לא נקבעה.")}
 }
  const active=appointments.find(a=>a.id===selected);
- return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link></nav><section style={{maxWidth:1280,margin:"18px auto",display:"grid",gap:12}}>
- <span className="eyebrow">QA · {en?"Internal calendar preview":"יומן פנימי להדגמה"}</span><h1 style={{margin:0}}>{en?"Interview calendar":"יומן ראיונות"}</h1><p style={{margin:0,color:"#64748b"}}>היומן מדגים זמינות, שעות חסומות ופגישות בדפדפן זה בלבד. עדיין אין סנכרון עם Google Calendar או שליחת הזמנות.</p>
- <div style={{...boxStyle,display:"grid",gap:12}}><button type="button" aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(v=>!v)} style={{background:"transparent",border:0,textAlign:"right",font:"inherit",fontWeight:700,cursor:"pointer"}}>⚙ הגדרות זמינות {settingsOpen?"▴":"▾"}</button>{settingsOpen&&<><h2 style={{margin:0,fontSize:16}}>ימי עבודה, שעות ומשכי ראיונות</h2><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{dayNames.map((n,i)=><label key={i} style={{padding:"9px 12px",border:"1px solid #ddd6fe",borderRadius:9,background:settings.days.includes(i)?"#ede9fe":"white",cursor:"pointer"}}><input type="checkbox" checked={settings.days.includes(i)} onChange={e=>saveSettings({...settings,days:e.target.checked?[...settings.days,i]:settings.days.filter(x=>x!==i)})}/> {n}</label>)}</div>
- <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
+ return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link></nav><section style={{maxWidth:1140,margin:"12px auto",display:"grid",gap:9,fontSize:13}}>
+ <span className="eyebrow">QA · {en?"Internal calendar preview":"יומן פנימי להדגמה"}</span><h1 style={{margin:0,fontSize:26,lineHeight:1.2}}>{en?"Interview calendar":"יומן ראיונות"}</h1><p style={{margin:0,color:"#64748b"}}>היומן מדגים זמינות, שעות חסומות ופגישות בדפדפן זה בלבד. עדיין אין סנכרון עם Google Calendar או שליחת הזמנות.</p>
+ <div style={{...boxStyle,display:"grid",gap:12}}><button type="button" aria-expanded={settingsOpen} onClick={()=>setSettingsOpen(v=>!v)} style={{background:"transparent",border:0,textAlign:"right",font:"inherit",fontWeight:700,cursor:"pointer"}}>⚙ הגדרות זמינות {settingsOpen?"▴":"▾"}</button>{settingsOpen&&<><h2 style={{margin:0,fontSize:16}}>ימי עבודה, שעות ומשכי ראיונות</h2><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{dayNames.map((n,i)=><label key={i} style={{padding:"5px 8px",fontSize:12,border:"1px solid #ddd6fe",borderRadius:9,background:settings.days.includes(i)?"#ede9fe":"white",cursor:"pointer"}}><input type="checkbox" checked={settings.days.includes(i)} onChange={e=>saveSettings({...settings,days:e.target.checked?[...settings.days,i]:settings.days.filter(x=>x!==i)})}/> {n}</label>)}</div>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(125px,1fr))",gap:8}}>
  {([["start","תחילת יום"],["end","סיום יום"]] as const).map(([k,label])=><label key={k}>{label}<input type="time" style={field} value={settings[k]} onChange={e=>saveSettings({...settings,[k]:e.target.value})}/></label>)}
  <label style={{display:"flex",alignItems:"center",gap:7,alignSelf:"end",paddingBottom:10}}><input type="checkbox" checked={settings.breakEnabled} onChange={e=>saveSettings({...settings,breakEnabled:e.target.checked})}/> חסימת הפסקה ביומן</label>
  {settings.breakEnabled&&([["breakStart","תחילת הפסקה"],["breakEnd","סיום הפסקה"]] as const).map(([k,label])=><label key={k}>{label}<input type="time" style={field} value={settings[k]} onChange={e=>saveSettings({...settings,[k]:e.target.value})}/></label>)}
  {(["phone","video","onsite"] as const).map(k=><label key={k}>משך {k==="phone"?"שיחה טלפונית":k==="video"?"ראיון וידאו":"ראיון פרונטלי"}<select style={field} value={settings.durations[k]} onChange={e=>saveSettings({...settings,durations:{...settings.durations,[k]:Number(e.target.value)}})}>{[15,20,30,45,60].map(x=><option key={x} value={x}>{x} דקות</option>)}</select></label>)}</div></>}</div>
  <div style={{...boxStyle,display:"grid",gap:12}}>
  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
- <h2 style={{margin:0}}>יומן שבועי</h2>
+ <h2 style={{margin:0,fontSize:17}}>יומן שבועי</h2>
  <div style={{display:"flex",gap:8,alignItems:"center"}}>
  <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()-7);setDay(localDate(d));setSelected("")}}>שבוע קודם</button>
  <button type="button" onClick={()=>{setDay(localDate(new Date()));setSelected("")}}>היום</button>
  <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()+7);setDay(localDate(d));setSelected("")}}>שבוע הבא</button>
  </div></div>
  <p style={{margin:0,color:"#64748b",fontSize:13}}>לחצי על שעה פנויה כדי לקבוע ראיון ידני. הזמנה אוטומטית למועמדת עדיין בפיתוח.</p>
- <div style={{overflowX:"auto",maxHeight:"min(68vh,680px)",overflowY:"auto"}}>
- <div style={{display:"grid",gridTemplateColumns:"52px repeat(7,minmax(74px,1fr))",gap:3,minWidth:610}}>
+ <div style={{overflowX:"auto",maxHeight:"min(62vh,560px)",overflowY:"auto"}}>
+ <div style={{display:"grid",gridTemplateColumns:"46px repeat(7,minmax(68px,1fr))",gap:2,minWidth:565}}>
  <div/>
- {weekDates.map(d=><div key={d.date} style={{padding:7,textAlign:"center",position:"sticky",top:0,zIndex:2,borderRadius:9,background:d.date===day?"#ede9fe":"#f8fafc",fontWeight:600}}>{dayNames[d.weekday]} {d.number}</div>)}
+ {weekDates.map(d=><div key={d.date} style={{padding:5,fontSize:12,textAlign:"center",position:"sticky",top:0,zIndex:2,borderRadius:9,background:d.date===day?"#ede9fe":"#f8fafc",fontWeight:600}}>{dayNames[d.weekday]} {d.number}</div>)}
  {weekHours.flatMap(hour=>[
- <div key={"h-"+hour} style={{padding:8,fontSize:12,color:"#64748b"}}>{clock(hour)}</div>,
- ...weekDates.map(d=>{const info=slotInfo(d.date,d.weekday,hour);const chosen=day===d.date&&selected===clock(hour);return <button key={d.date+"-"+hour} type="button" disabled={info.busy} title={info.appointment?info.appointment.name+" · "+info.appointment.job:info.reason} onClick={()=>{setDay(d.date);setSelected(clock(hour));setMessage("")}} style={{minHeight:30,padding:3,borderRadius:6,border:chosen?"2px solid #6147f5":"1px solid #e4ddff",background:info.appointment?"#e9e3ff":info.busy?"#f1f5f9":"#f0fdf4",cursor:info.busy?"not-allowed":"pointer",color:"#243047",fontSize:11,overflow:"hidden"}}>
+ <div key={"h-"+hour} style={{padding:4,fontSize:11,color:"#64748b"}}>{clock(hour)}</div>,
+ ...weekDates.map(d=>{const info=slotInfo(d.date,d.weekday,hour);const chosen=day===d.date&&selected===clock(hour);return <button key={d.date+"-"+hour} type="button" disabled={info.busy} title={info.appointment?info.appointment.name+" · "+info.appointment.job:info.reason} onClick={()=>{setDay(d.date);setSelected(clock(hour));setMessage("")}} style={{minHeight:24,padding:2,borderRadius:5,border:chosen?"2px solid #6147f5":"1px solid #e4ddff",background:info.appointment?"#e9e3ff":info.busy?"#f1f5f9":"#f0fdf4",cursor:info.busy?"not-allowed":"pointer",color:"#243047",fontSize:10,overflow:"hidden"}}>
  {info.appointment?<><strong>{info.appointment.name}</strong><span style={{display:"block"}}>{info.appointment.time} · {info.appointment.minutes} דק׳</span></>:info.busy?info.reason:chosen?"נבחר":"פנוי"}
  </button>})
  ])}
