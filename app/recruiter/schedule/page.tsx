@@ -14,7 +14,7 @@ export default function SchedulePage(){
  const [buffer,setBuffer]=useState("10");
  const [start,setStart]=useState("09:00");
  const [end,setEnd]=useState("17:00");
- return <main className="shell"><section style={{maxWidth:900,margin:"45px auto"}}>
+ return (<main className="shell"><section style={{maxWidth:900,margin:"45px auto"}}>
  <Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link>
  <h1>{en?"Interview scheduling":"תיאום ראיונות"}</h1>
  <p>{en?"Candidates choose from available slots on your connected calendar.":"המועמדת תבחר שעה מתוך הזמנים הפנויים ביומן של המגייסת."}</p>
@@ -37,5 +37,5 @@ export default function SchedulePage(){
  </div>
  <p style={{fontSize:13,color:"#64748b"}}>{en?"These controls are a preview. Settings are not yet saved or synced to a calendar.":"הגדרות אלו הן תצוגה מקדימה; הן עדיין לא נשמרות ולא מסונכרנות ליומן."}</p></div>
  <div className="choice"><h2>{en?"3. Candidate booking":"3. בחירת מועד על ידי המועמדת"}</h2><p>{en?"Once connected, HOW? will display only free time slots and recheck availability before booking.":"לאחר חיבור היומן, HOW? תציג רק שעות פנויות ותבדוק זמינות מחדש לפני קביעת ראיון."}</p><p>{en?"No real interview can be booked until the integration is configured.":"לא ניתן לקבוע ראיון אמיתי לפני השלמת האינטגרציה."}</p></div>
- </section></main>
+ </section></main>);
 }
