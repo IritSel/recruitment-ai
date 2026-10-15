@@ -1,67 +1,54 @@
 "use client";
 import Link from "next/link";
-import {useEffect,useState} from "react";
-import {getSupabase} from "../../lib/supabase";
+import {useEffect,useMemo,useState} from "react";
 import {useSiteLanguage} from "../../components/useSiteLanguage";
 
+type Appointment={id:string;date:string;time:string;minutes:number;name:string;job:string;type:string};
+type Settings={days:number[];start:string;end:string;breakStart:string;breakEnd:string;duration:number};
+const defaults:Settings={days:[0,1,2,3,4],start:"09:00",end:"17:00",breakStart:"12:30",breakEnd:"13:00",duration:30};
+const dayNames=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
+const boxStyle:React.CSSProperties={border:"1px solid #e4ddff",borderRadius:14,padding:16,background:"#fff"};
+const field:React.CSSProperties={border:"1px solid #ddd6fe",borderRadius:9,padding:9,font:"inherit",width:"100%",boxSizing:"border-box"};
+function minutes(s:string){const [h,m]=s.split(":").map(Number);return h*60+m}
+function clock(n:number){return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
+function localDate(d:Date){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 export default function SchedulePage(){
  const en=useSiteLanguage()==="en";
- const [connecting,setConnecting]=useState(false);
- const [error,setError]=useState("");
- const [status,setStatus]=useState<string|null>(null);
- const [kind,setKind]=useState("phone");
- const [duration,setDuration]=useState("20");
- const [buffer,setBuffer]=useState("10");
- const [start,setStart]=useState("09:00");
- const [end,setEnd]=useState("17:00");
- useEffect(()=>{setStatus(new URLSearchParams(window.location.search).get("calendar"))},[]);
- async function connectCalendar(){
-  setConnecting(true);
-  setError("");
-  try{
-   const {data}=await getSupabase().auth.getSession();
-   if(!data.session)throw new Error(en?"Sign in to your QA account first.":"יש להתחבר לחשבון QA תחילה.");
-   const res=await fetch("/api/calendar/google/start",{method:"POST",headers:{Authorization:"Bearer "+data.session.access_token}});
-   if(!res.ok)throw new Error(en?"Could not start Google authorization.":"לא ניתן להתחיל את החיבור ל־Google.");
-   const payload=await res.json() as {url?:string};
-   if(!payload.url)throw new Error("Google authorization URL is missing");
-   window.location.assign(payload.url);
-  }catch(e){
-   setError(e instanceof Error?e.message:"Connection failed");
-   setConnecting(false);
-  }
- }
- const field:React.CSSProperties={display:"block",width:"100%",padding:12,border:"1px solid #ddd6fe",borderRadius:10};
- return (
-  <main className="shell">
-   <section style={{maxWidth:900,margin:"45px auto"}}>
-    <Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link>
-    <h1>{en?"Interview scheduling":"תיאום ראיונות"}</h1>
-    <p>{en?"Candidates will select available slots on a connected calendar.":"מועמדות יבחרו שעות פנויות ביומן המגייסת לאחר השלמת החיבור."}</p>
-    <div className="choice">
-     <h2>{en?"1. Connect calendar":"1. חיבור היומן"}</h2>
-     <p><strong>{en?"Google Calendar — not connected":"Google Calendar — עדיין לא מחובר"}</strong></p>
-     {status==="verified"&&<p role="status">{en?"Authorization verified for QA. Secure token storage is still pending.":"ההרשאה אומתה ב־QA, אך שמירת החיבור עדיין לא הושלמה."}</p>}
-     {status&&status!=="verified"&&<p role="alert">{en?"Google authorization did not complete.":"אישור Google לא הושלם."}</p>}
-     <button type="button" className="button" onClick={connectCalendar} disabled={connecting}>{connecting?(en?"Connecting…":"מתחבר…"):(en?"Authorize Google Calendar (QA)":"אישור גישה ל־Google Calendar (QA)")}</button>
-     {error&&<p role="alert" style={{color:"#b42318"}}>{error}</p>}
-    </div>
-    <div className="choice">
-     <h2>{en?"2. Interview rules (QA preview)":"2. הגדרות ראיונות (תצוגת QA)"}</h2>
-     <div style={{display:"grid",gap:14,maxWidth:430}}>
-      <label>{en?"Interview type":"סוג ראיון"}<select style={field} value={kind} onChange={e=>setKind(e.target.value)}><option value="phone">{en?"Phone":"טלפוני"}</option><option value="video">{en?"Video":"וידאו"}</option></select></label>
-      <label>{en?"Duration (minutes)":"משך ראיון (דקות)"}<select style={field} value={duration} onChange={e=>setDuration(e.target.value)}>{["15","20","30","45","60"].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-      <label>{en?"Break between meetings (minutes)":"הפסקה בין ראיונות (דקות)"}<select style={field} value={buffer} onChange={e=>setBuffer(e.target.value)}>{["0","5","10","15"].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
-      <label>{en?"From":"משעה"}<input style={field} type="time" value={start} onChange={e=>setStart(e.target.value)}/></label>
-      <label>{en?"Until":"עד שעה"}<input style={field} type="time" value={end} onChange={e=>setEnd(e.target.value)}/></label>
-     </div>
-     <p>{en?"Preview only — these rules are not saved yet.":"תצוגת QA בלבד — ההגדרות עדיין אינן נשמרות."}</p>
-    </div>
-    <div className="choice">
-     <h2>{en?"3. Candidate booking":"3. בחירת מועד על ידי המועמדת"}</h2>
-     <p>{en?"Booking will be enabled after secure calendar connection and availability checks are implemented.":"קביעת ראיונות תופעל רק לאחר השלמת שמירת החיבור ובדיקות הזמינות."}</p>
-    </div>
-   </section>
-  </main>
- );
+ const [settings,setSettings]=useState<Settings>(defaults);
+ const [appointments,setAppointments]=useState<Appointment[]>([]);
+ const [day,setDay]=useState("");
+ const [selected,setSelected]=useState("");
+ const [name,setName]=useState("נועה כהן");
+ const [job,setJob]=useState("שירות לקוחות");
+ const [type,setType]=useState("phone");
+ const [message,setMessage]=useState("");
+ const [ready,setReady]=useState(false);
+ useEffect(()=>{try{const s=localStorage.getItem("how-qa-calendar-settings");if(s){const v=JSON.parse(s);if(v&&Array.isArray(v.days))setSettings({...defaults,...v})}const a=localStorage.getItem("how-qa-calendar-appointments");if(a){const v=JSON.parse(a);if(Array.isArray(v))setAppointments(v)}const query=new URLSearchParams(location.search);const d=query.get("date");const id=query.get("appointment");setDay(d||localDate(new Date()));if(id)setSelected(id);if(query.get("candidate")==="noa")setName("נועה כהן")}catch{setDay(localDate(new Date()))}setReady(true)},[]);
+ const dateObj=useMemo(()=>day?new Date(day+"T12:00:00"):new Date(),[day]);
+ const isWorking=settings.days.includes(dateObj.getDay());
+ const slots=useMemo(()=>{if(!isWorking||minutes(settings.end)<=minutes(settings.start))return [];const arr:{time:string;busy:boolean;reason:string}[]=[];for(let m=minutes(settings.start);m+settings.duration<=minutes(settings.end);m+=30){const breakOverlap=minutes(settings.breakEnd)>minutes(settings.breakStart)&&m<minutes(settings.breakEnd)&&m+settings.duration>minutes(settings.breakStart);const meeting=appointments.find(a=>a.date===day&&m<minutes(a.time)+a.minutes&&m+settings.duration>minutes(a.time));arr.push({time:clock(m),busy:Boolean(breakOverlap||meeting),reason:meeting?"פגישה קיימת":breakOverlap?"הפסקה":""})}return arr},[settings,appointments,day,isWorking]);
+ const dayAppointments=appointments.filter(a=>a.date===day).sort((a,b)=>a.time.localeCompare(b.time));
+ function saveSettings(v:Settings){setSettings(v);localStorage.setItem("how-qa-calendar-settings",JSON.stringify(v));setMessage("הגדרות הזמינות נשמרו בדפדפן לצורכי QA.")}
+ function saveAppointment(){const slot=slots.find(s=>s.time===selected);if(!slot||slot.busy||!name.trim()){setMessage("יש לבחור שעה פנויה ולהזין שם מועמדת.");return}const entry:Appointment={id:"qa-"+Date.now(),date:day,time:selected,minutes:settings.duration,name:name.trim(),job:job.trim(),type};const next=[...appointments,entry];localStorage.setItem("how-qa-calendar-appointments",JSON.stringify(next));setAppointments(next);setSelected(entry.id);setMessage("ראיון QA נוסף ליומן ולדשבורד. לא נשלחה הזמנה ולא נוצר אירוע ב־Google.")}
+ const active=appointments.find(a=>a.id===selected);
+ return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link></nav><section style={{maxWidth:1020,margin:"35px auto",display:"grid",gap:18}}>
+ <span className="eyebrow">QA · {en?"Internal calendar preview":"יומן פנימי להדגמה"}</span><h1 style={{margin:0}}>{en?"Interview calendar":"יומן ראיונות"}</h1><p style={{margin:0,color:"#64748b"}}>היומן מדגים זמינות, שעות חסומות ופגישות בדפדפן זה בלבד. עדיין אין סנכרון עם Google Calendar או שליחת הזמנות.</p>
+ <div style={{...boxStyle,display:"grid",gap:12}}><h2 style={{margin:0}}>הגדרת זמינות מראש</h2><div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{dayNames.map((n,i)=><label key={i} style={{padding:"9px 12px",border:"1px solid #ddd6fe",borderRadius:9,background:settings.days.includes(i)?"#ede9fe":"white",cursor:"pointer"}}><input type="checkbox" checked={settings.days.includes(i)} onChange={e=>saveSettings({...settings,days:e.target.checked?[...settings.days,i]:settings.days.filter(x=>x!==i)})}/> {n}</label>)}</div>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
+ {([["start","תחילת יום"],["end","סיום יום"],["breakStart","תחילת הפסקה"],["breakEnd","סיום הפסקה"]] as const).map(([k,label])=><label key={k}>{label}<input type="time" style={field} value={settings[k]} onChange={e=>saveSettings({...settings,[k]:e.target.value})}/></label>)}
+ <label>משך ראיון<select style={field} value={settings.duration} onChange={e=>saveSettings({...settings,duration:Number(e.target.value)})}>{[15,20,30,45,60].map(x=><option key={x} value={x}>{x} דקות</option>)}</select></label></div></div>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16}}>
+ <div style={{...boxStyle,display:"grid",gap:12,alignContent:"start"}}><h2 style={{margin:0}}>זמינות ליום נבחר</h2><label>תאריך<input type="date" style={field} value={day} onChange={e=>{setDay(e.target.value);setSelected("");setMessage("")}}/></label>
+ {!isWorking?<p>יום זה מוגדר כיום לא פעיל. אפשר לשנות את ימי העבודה למעלה.</p>:<div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:8}}>
+ {slots.map(s=><button key={s.time} type="button" disabled={s.busy} onClick={()=>setSelected(s.time)} title={s.reason||"פנוי"} style={{padding:"12px 4px",borderRadius:10,border:selected===s.time?"2px solid #6147f5":"1px solid #ddd6fe",background:s.busy?"#f1f5f9":selected===s.time?"#ede9fe":"#ecfdf5",color:s.busy?"#64748b":"#172554",cursor:s.busy?"not-allowed":"pointer"}}>{s.time}<small style={{display:"block"}}>{s.busy?s.reason:"פנוי"}</small></button>)}</div>}
+ {slots.length===0&&isWorking&&<p>אין חלונות זמינים בהגדרות הנוכחיות.</p>}
+ </div>
+ <div style={{...boxStyle,display:"grid",gap:12,alignContent:"start"}}><h2 style={{margin:0}}>קביעת ראיון QA</h2><label>שם המועמדת<input style={field} value={name} onChange={e=>setName(e.target.value)}/></label><label>משרה<input style={field} value={job} onChange={e=>setJob(e.target.value)}/></label><label>סוג ראיון<select style={field} value={type} onChange={e=>setType(e.target.value)}><option value="phone">טלפוני</option><option value="video">וידאו (QA ללא קישור Meet)</option></select></label>
+ <p>שעה שנבחרה: <strong>{selected&&!active?selected:"לא נבחרה שעה פנויה"}</strong></p><button type="button" className="button" disabled={!selected||Boolean(active)||!ready} onClick={saveAppointment}>קביעת ראיון ביומן QA</button>
+ {message&&<p role="status" style={{color:"#285b54"}}>{message}</p>}
+ </div></div>
+ <div style={{...boxStyle,display:"grid",gap:12}}><h2 style={{margin:0}}>פגישות בתאריך הנבחר</h2>
+ {dayAppointments.length===0?<p>אין פגישות שנקבעו ליום הזה.</p>:dayAppointments.map(a=><div key={a.id} id={a.id} style={{padding:12,border:selected===a.id?"2px solid #6147f5":"1px solid #e4ddff",borderRadius:12,background:selected===a.id?"#faf8ff":"white"}}><button type="button" onClick={()=>setSelected(a.id)} style={{border:0,background:"transparent",textAlign:"right",cursor:"pointer",font:"inherit",width:"100%"}}><strong>{a.time} · {a.name}</strong><p style={{margin:"5px 0"}}>{a.job} · {a.type==="phone"?"ראיון טלפוני":"ראיון וידאו"} · {a.minutes} דקות</p></button></div>)}
+ {active&&<div style={{background:"#f5f3ff",borderRadius:12,padding:12}}><h3>פרטי הפגישה</h3><p>{active.name} · {active.job}</p><p>{active.date} · {active.time} · {active.minutes} דקות</p><button type="button" onClick={()=>{const next=appointments.filter(a=>a.id!==active.id);localStorage.setItem("how-qa-calendar-appointments",JSON.stringify(next));setAppointments(next);setSelected("");setMessage("פגישת QA בוטלה.")}}>ביטול פגישת QA</button></div>}
+ </div></section></main>;
 }
