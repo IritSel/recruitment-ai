@@ -30,7 +30,24 @@ export default function SchedulePage(){
  const slots=useMemo(()=>{if(!isWorking||minutes(settings.end)<=minutes(settings.start))return [];const arr:{time:string;busy:boolean;reason:string}[]=[];for(let m=minutes(settings.start);m+duration<=minutes(settings.end);m+=15){const breakOverlap=minutes(settings.breakEnd)>minutes(settings.breakStart)&&m<minutes(settings.breakEnd)&&m+duration>minutes(settings.breakStart);const meeting=appointments.find(a=>a.date===day&&m<minutes(a.time)+a.minutes&&m+duration>minutes(a.time));arr.push({time:clock(m),busy:Boolean(breakOverlap||meeting),reason:meeting?"פגישה קיימת":breakOverlap?"הפסקה":""})}return arr},[settings,appointments,day,isWorking,duration]);
  const dayAppointments=appointments.filter(a=>a.date===day).sort((a,b)=>a.time.localeCompare(b.time));
  function saveSettings(v:Settings){setSettings(v);localStorage.setItem("how-qa-calendar-settings",JSON.stringify(v));setMessage("הגדרות הזמינות נשמרו בדפדפן לצורכי QA.")}
- function saveAppointment(){const slot=slots.find(s=>s.time===selected);if(!slot||slot.busy||!name.trim()){setMessage("יש לבחור שעה פנויה ולהזין שם מועמדת.");return}const entry:Appointment={id:"qa-"+Date.now(),date:day,time:selected,minutes:duration,name:name.trim(),job:job.trim(),type};const next=[...appointments,entry];localStorage.setItem("how-qa-calendar-appointments",JSON.stringify(next));setAppointments(next);setSelected(entry.id);setMessage("ראיון QA נוסף ליומן ולדשבורד. לא נשלחה הזמנה ולא נוצר אירוע ב־Google.")}
+ function saveAppointment(){
+ const slot=slots.find(s=>s.time===selected);
+ if(!slot||slot.busy||!name.trim()){setMessage("יש לבחור שעה פנויה ולהזין שם מועמדת.");return}
+ try{
+  const raw=localStorage.getItem("how-qa-calendar-appointments");
+  const parsed=raw?JSON.parse(raw):[];
+  const latest:Appointment[]=Array.isArray(parsed)?parsed:appointments;
+  const startAt=minutes(selected);
+  const conflict=latest.some(a=>a.date===day&&startAt<minutes(a.time)+a.minutes&&startAt+duration>minutes(a.time));
+  if(conflict){setAppointments(latest);setSelected("");setMessage("השעה כבר תפוסה. יש לבחור מועד אחר.");return}
+  const entry:Appointment={id:"qa-"+Date.now(),date:day,time:selected,minutes:duration,name:name.trim(),job:job.trim(),type};
+  const next=[...latest,entry];
+  localStorage.setItem("how-qa-calendar-appointments",JSON.stringify(next));
+  setAppointments(next);
+  setSelected(entry.id);
+  setMessage("ראיון QA נקבע: "+entry.time+"–"+clock(startAt+duration)+". השעה נחסמה ביומן. לא נשלחה הזמנה ולא נוצר אירוע ב־Google.");
+ }catch{setMessage("לא ניתן לשמור את הראיון בדפדפן. הפגישה לא נקבעה.")}
+}
  const active=appointments.find(a=>a.id===selected);
  return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><Link href="/recruiter">← {en?"Dashboard":"דשבורד"}</Link></nav><section style={{maxWidth:1020,margin:"35px auto",display:"grid",gap:18}}>
  <span className="eyebrow">QA · {en?"Internal calendar preview":"יומן פנימי להדגמה"}</span><h1 style={{margin:0}}>{en?"Interview calendar":"יומן ראיונות"}</h1><p style={{margin:0,color:"#64748b"}}>היומן מדגים זמינות, שעות חסומות ופגישות בדפדפן זה בלבד. עדיין אין סנכרון עם Google Calendar או שליחת הזמנות.</p>
@@ -49,7 +66,7 @@ export default function SchedulePage(){
  {message&&<p role="status" style={{color:"#285b54"}}>{message}</p>}
  </div></div>
  <div style={{...boxStyle,display:"grid",gap:12}}><h2 style={{margin:0}}>פגישות בתאריך הנבחר</h2>
- {dayAppointments.length===0?<p>אין פגישות שנקבעו ליום הזה.</p>:dayAppointments.map(a=><div key={a.id} id={a.id} style={{padding:12,border:selected===a.id?"2px solid #6147f5":"1px solid #e4ddff",borderRadius:12,background:selected===a.id?"#faf8ff":"white"}}><button type="button" onClick={()=>setSelected(a.id)} style={{border:0,background:"transparent",textAlign:"right",cursor:"pointer",font:"inherit",width:"100%"}}><strong>{a.time} · {a.name}</strong><p style={{margin:"5px 0"}}>{a.job} · {a.type==="phone"?"ראיון טלפוני":a.type==="video"?"ראיון וידאו":"ראיון פרונטלי"} · {a.minutes} דקות</p></button></div>)}
+ {dayAppointments.length===0?<p>אין פגישות שנקבעו ליום הזה.</p>:dayAppointments.map(a=><div key={a.id} id={a.id} style={{padding:12,border:selected===a.id?"2px solid #6147f5":"1px solid #e4ddff",borderRadius:12,background:selected===a.id?"#faf8ff":"white"}}><button type="button" onClick={()=>setSelected(a.id)} style={{border:0,background:"transparent",textAlign:"right",cursor:"pointer",font:"inherit",width:"100%"}}><strong>{a.time}–{clock(minutes(a.time)+a.minutes)} · {a.name}</strong><p style={{margin:"5px 0"}}>{a.job} · {a.type==="phone"?"ראיון טלפוני":a.type==="video"?"ראיון וידאו":"ראיון פרונטלי"} · {a.minutes} דקות</p></button></div>)}
  {active&&<div style={{background:"#f5f3ff",borderRadius:12,padding:12}}><h3>פרטי הפגישה</h3><p>{active.name} · {active.job}</p><p>{active.date} · {active.time} · {active.minutes} דקות</p><button type="button" onClick={()=>{const next=appointments.filter(a=>a.id!==active.id);localStorage.setItem("how-qa-calendar-appointments",JSON.stringify(next));setAppointments(next);setSelected("");setMessage("פגישת QA בוטלה.")}}>ביטול פגישת QA</button></div>}
  </div></section></main>;
 }
