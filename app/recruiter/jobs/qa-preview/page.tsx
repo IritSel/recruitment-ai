@@ -3,10 +3,15 @@ import Link from "next/link";
 import {useEffect,useState} from "react";
 type Criterion={id:number;text:string;priority:"must"|"preferred"|"flexible"};
 type Job={id:string;title:string;description:string;employment:string;criteria:Criterion[];qa:true};
+const demoJobs:Job[]=[
+{id:"qa-demo-service",title:"נציגי שירות",description:"מתן שירות ללקוחות בטלפון ובערוצים דיגיטליים, טיפול בפניות, תיעוד במערכת ומתן פתרונות מקצועיים.",employment:"משרה מלאה",criteria:[{id:1,text:"תקשורת בין־אישית טובה",priority:"must"},{id:2,text:"ניסיון קודם בשירות לקוחות",priority:"preferred"}],qa:true},
+{id:"qa-demo-team",title:"מנהל/ת צוות",description:"ניהול צוות נציגים, חניכה ומשוב, בקרה על מדדי שירות והובלת שיפור תהליכים.",employment:"משרה מלאה",criteria:[{id:1,text:"ניסיון בניהול צוות",priority:"must"},{id:2,text:"ניסיון במוקד שירות",priority:"preferred"}],qa:true},
+{id:"qa-demo-backoffice",title:"בק אופיס",description:"טיפול במסמכים ובבקשות, עבודה עם מערכות מידע, בקרת נתונים וממשקים מול צוותים פנימיים.",employment:"משרה מלאה",criteria:[{id:1,text:"סדר ודיוק בעבודה",priority:"must"},{id:2,text:"שליטה ביישומי Office",priority:"preferred"}],qa:true}
+];
 export default function QaJobPreview(){
  const [job,setJob]=useState<Job|null>(null);
  const [loaded,setLoaded]=useState(false);
- useEffect(()=>{try{const id=new URLSearchParams(window.location.search).get("id");const raw=localStorage.getItem("how-qa-published-jobs");const data=raw?JSON.parse(raw):[];if(Array.isArray(data)){const found=data.find((j:Job)=>j?.id===id&&j.qa===true);if(found)setJob(found)}}catch{}setLoaded(true)},[]);
+ useEffect(()=>{try{const id=new URLSearchParams(window.location.search).get("id");const raw=localStorage.getItem("how-qa-published-jobs");const data=raw?JSON.parse(raw):[];if(Array.isArray(data)){const found=data.find((j:Job)=>j?.id===id&&j.qa===true);if(found)setJob(found);else setJob(demoJobs.find(j=>j.id===id)||null)}else setJob(demoJobs.find(j=>j.id===id)||null)}catch{}setLoaded(true)},[]);
  return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><Link href="/recruiter/jobs">← חזרה למשרות</Link></nav>
  <section className="choice" style={{maxWidth:760,margin:"48px auto",display:"grid",gap:14}}>
  <span className="eyebrow">QA · תצוגת מועמדת · לא פורסם לציבור</span>
