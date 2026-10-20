@@ -2,6 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useSiteLanguage} from "../../../components/useSiteLanguage";
+import {qaCandidates} from "../../../qa-candidates";
 
 type Priority="must"|"preferred"|"flexible";
 type Criterion={id:string;text:string;priority:Priority};
@@ -18,7 +19,10 @@ export default function JobWorkspace(){
  const [error,setError]=useState("");
  const [newCriterion,setNewCriterion]=useState("");
  const [newQuestion,setNewQuestion]=useState("");
- useEffect(()=>{try{const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw) as Partial<Job>;setJob({...defaults,...parsed,criteria:Array.isArray(parsed.criteria)?parsed.criteria:[],screeningQuestions:Array.isArray(parsed.screeningQuestions)?parsed.screeningQuestions:[]})}}catch{}},[]);
+ const [applications,setApplications]=useState<{candidateId:string;jobId:string;status:string}[]>([]);
+ const [seeded,setSeeded]=useState(false);
+ useEffect(()=>{try{const rawApplications=JSON.parse(localStorage.getItem("how-qa-applications")||"[]");if(Array.isArray(rawApplications))setApplications(rawApplications);const raw=localStorage.getItem(storageKey);if(raw){const parsed=JSON.parse(raw) as Partial<Job>;setJob({...defaults,...parsed,criteria:Array.isArray(parsed.criteria)?parsed.criteria:[],screeningQuestions:Array.isArray(parsed.screeningQuestions)?parsed.screeningQuestions:[]})}}catch{}},[]);
+ const seedApplications=()=>{try{const demo=[{candidateId:"noa",jobId:"qa-demo-service",status:"review"},{candidateId:"daniel",jobId:"qa-demo-service",status:"review"},{candidateId:"shira",jobId:"qa-demo-service",status:"review"},{candidateId:"maya",jobId:"qa-demo-service",status:"process"},{candidateId:"amir",jobId:"qa-demo-backoffice",status:"review"}];const raw=JSON.parse(localStorage.getItem("how-qa-applications")||"[]");const existing:Array<{candidateId:string;jobId:string;status:string}>=Array.isArray(raw)?raw:[];const merged=[...existing,...demo.filter(d=>!existing.some(x=>x.candidateId===d.candidateId&&x.jobId===d.jobId))];localStorage.setItem("how-qa-applications",JSON.stringify(merged));setApplications(merged);setSeeded(true)}catch{setError("לא ניתן ליצור מועמדויות QA.")}};
  const update=<K extends keyof Job>(key:K,value:Job[K])=>{setJob(prev=>({...prev,[key]:value}));setSaved(false)};
  const changeCriterion=(id:string,patch:Partial<Criterion>)=>update("criteria",job.criteria.map(c=>c.id===id?{...c,...patch}:c));
  const addCriterion=()=>{const text=newCriterion.trim();if(!text)return;update("criteria",[...job.criteria,{id:"qa-"+Date.now()+"-"+job.criteria.length,text,priority:"flexible"}]);setNewCriterion("")};
@@ -72,8 +76,11 @@ export default function JobWorkspace(){
  <p><b>{en?"Screening questions":"שאלות סינון"}:</b> {job.screeningQuestions.length}</p>
  <p><b>{en?"Status":"סטטוס"}:</b> {job.status}</p><p><b>{en?"Internal salary":"שכר פנימי"}:</b> {job.salary||"לא הוגדר"}</p></>}
  </div>
- <h2 style={{marginTop:28}}>{en?"Candidates":"מועמדים"}</h2>
- <div className="choice"><h3>{en?"Waiting for review":"ממתינים לבדיקה"}</h3><p><b>נועה כהן</b> · {en?"Sample candidate — matching not recalculated":"מועמדת לדוגמה — ההתאמה אינה מחושבת מחדש"}</p><Link className="button" href="/recruiter/candidates/1">{en?"Open candidate":"פתיחת מועמד/ת"}</Link></div>
- <div className="choice"><h3>{en?"In process":"בתהליך"}</h3><p>{en?"3 demo candidates":"3 מועמדים לדוגמה"}</p></div>
+ <section style={{marginTop:30,display:"grid",gap:16}}>
+ <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}><div><h2 style={{margin:0}}>מועמדים למשרה</h2><p style={{color:"#64748b",margin:"6px 0 0"}}>מוצגות רק מועמדויות QA שנוצרו למשרה זו, ולא כל המועמדים במאגר.</p></div><button type="button" onClick={seedApplications} style={{padding:"11px 16px",border:"1px solid #c9bfff",borderRadius:10,background:"#f7f5ff",color:"#3926a6",fontWeight:700,cursor:"pointer"}}>יצירת מועמדויות בדיקה</button></div>
+ {seeded&&<p role="status">מועמדויות QA נוצרו ונשמרו בדפדפן.</p>}
+ {[{key:"review",label:"ממתינים לבדיקה"},{key:"process",label:"בתהליך"},{key:"rejected",label:"לא ממשיכים"},{key:"hired",label:"התקבלו"}].map(group=>{const matches=applications.filter(a=>a.jobId==="qa-demo-service"&&a.status===group.key);return <div className="choice" key={group.key} style={{margin:0,padding:20}}><h3 style={{margin:"0 0 12px"}}>{group.label} · {matches.length}</h3>{matches.length===0?<p style={{color:"#64748b",margin:0}}>אין מועמדים בשלב זה.</p>:<div style={{display:"grid",gap:10}}>{matches.map(a=>{const c=qaCandidates.find(x=>x.id===a.candidateId);return c?<div key={a.candidateId} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap",padding:12,border:"1px solid #eee9ff",borderRadius:10}}><div><strong>{c.name}</strong><p style={{margin:"4px 0",fontSize:13}}>{c.role} · {c.experience} · {c.city}</p></div><Link href={"/recruiter/candidates/qa-profile?id="+c.id} style={{color:"#4935c2",fontWeight:700}}>צפייה בפרופיל ←</Link></div>:null})}</div>}</div>})}
+ <small>הגשות QA בלבד. אין שליחת מועמדות אמיתית או חישוב התאמה אוטומטי.</small>
+ </section>
  </section></main>
 }
