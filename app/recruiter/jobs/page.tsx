@@ -50,10 +50,8 @@ export default function JobsPage(){
  <p style={{margin:0,fontSize:13}}>{job.employment}</p>
  <p style={{margin:0,fontSize:13,lineHeight:1.5}}>{job.description.length>150?job.description.slice(0,150)+"…":job.description}</p>
  <small>{en?"Defined requirements":"דרישות מוגדרות"}: {job.criteria?.length||0}</small>
- <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:7,margin:"8px 0",direction:"rtl"}}>{[{label:"הגישו",value:submitted},{label:"עברו סינון",value:screened},{label:"מתאימים",value:matched}].map(metric=><div key={metric.label} style={{border:"1px solid #e6e0fa",borderRadius:12,padding:"12px 5px",textAlign:"center",background:"#faf9ff"}}><strong style={{display:"block",fontSize:24,color:"#3424a0",lineHeight:1.3}}>{metric.value}</strong><span style={{fontSize:12,color:"#615a79"}}>{metric.label}</span></div>)}</div>
- <Link className="button" style={{justifySelf:"start"}} href={"/recruiter/jobs/manage?id="+encodeURIComponent(job.id)}>{en?"Manage job and candidates":"ניהול משרה ומועמדים"}</Link>
- <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button type="button" onClick={()=>toggleClose(job.id)} style={{padding:9,borderRadius:9,border:"1px solid #ddd6fe",background:"white"}}>{closedIds.includes(job.id)?"פתיחת משרה מחדש":"סגירת משרה"}</button><button type="button" onClick={()=>deleteJob(job.id,job.title)} style={{padding:9,borderRadius:9,border:"1px solid #f1d2d2",background:"white",color:"#9b3434"}}>מחיקת משרה</button></div>
- </article>})}
+ <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:7,margin:"8px 0",direction:"rtl"}}>{[{label:"הגישו",value:submitted,filter:"all"},{label:"עברו סינון",value:screened,filter:"screened"},{label:"מתאימים",value:matched,filter:"matched"}].map(metric=><Link key={metric.label} href={"/recruiter/jobs/manage?id="+encodeURIComponent(job.id)+"&filter="+metric.filter} style={{border:"1px solid #e6e0fa",borderRadius:12,padding:"12px 5px",textAlign:"center",background:"#faf9ff",textDecoration:"none"}}><strong style={{display:"block",fontSize:24,color:"#3424a0",lineHeight:1.3}}>{metric.value}</strong><span style={{fontSize:12,color:"#615a79"}}>{metric.label} ←</span></Link>)}</div>
+ <Link className="button" style={{justifySelf:"start"}} href={"/recruiter/jobs/manage?id="+encodeURIComponent(job.id)}>{en?"Manage job":"ניהול משרה"}</Link> </article>})}
  </div></section>
  </section></main>;
 }
