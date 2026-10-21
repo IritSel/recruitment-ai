@@ -10,6 +10,7 @@ const screened=(a:Application[])=>unique(a.filter(x=>x.screeningStatus==="passed
 const inProcess=(a:Application[])=>unique(a.filter(x=>x.status==="process"));
 export default function RecruiterDashboard(){
  const en=useSiteLanguage()==="en";
+ useEffect(()=>{try{const c=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");if(c?.kind==="demo"&&c.role==="admin")window.location.replace("/company/dashboard")}catch{}},[]);
  const [applications,setApplications]=useState<Application[]>([]);
  const [qaCompany,setQaCompany]=useState("");
  const [tasks,setTasks]=useState<{id:string;companyId:string;assignee:string;title:string;jobId:string;due:string;status:string;note:string}[]>([]);
