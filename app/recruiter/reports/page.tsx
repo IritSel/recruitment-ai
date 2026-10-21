@@ -1,17 +1,38 @@
 "use client";
 import Link from "next/link";
-import { useSiteLanguage } from "../../components/useSiteLanguage";
-export default function ReportsPage() {
- const en = useSiteLanguage() === "en";
- return <main className="shell">
-  <section style={{padding:"45px 0"}}>
-   <Link href="/recruiter">← {en ? "Dashboard" : "דשבורד"}</Link>
-   <h1>{en ? "Reports" : "דוחות"}</h1>
-   <div className="choice">
-    <h2>{en ? "Recruitment overview" : "דוח גיוס מרוכז"}</h2>
-    <p>{en ? "The full version will include funnel data, process times and actionable insights in one PDF." : "בגרסה המלאה יופק כאן PDF אחד עם משפך, זמני תהליך ותובנות פעולה."}</p>
-    <button className="button" disabled style={{opacity:.5}}>{en ? "Generate PDF — not connected yet" : "הפקת PDF — עדיין לא מחובר"}</button>
-   </div>
-  </section>
- </main>;
+import {useEffect,useMemo,useState} from "react";
+import {useSiteLanguage} from "../../components/useSiteLanguage";
+import QaDemoBanner from "../../components/QaDemoBanner";
+type Job={id:string;title:string;companyId?:string;createdAt?:string;qa?:boolean};
+type Application={jobId:string;candidateId:string;status:string;screeningStatus?:string;fitStatus?:string;createdAt?:string};
+type Offer={jobId:string;candidateId:string;status?:string;sentAt?:string};
+type Event={jobId:string;candidateId:string;action:string;at?:string};
+type Booking={jobId:string;candidateId:string;slotId:string};
+const demoJobs:Job[]=[{id:"qa-demo-service",title:"נציגי שירות",companyId:"demo-a"},{id:"qa-demo-team",title:"מנהל/ת צוות",companyId:"demo-a"},{id:"qa-demo-backoffice",title:"בק אופיס",companyId:"demo-a"}];
+const card:React.CSSProperties={padding:18,border:"1px solid #e5defc",borderRadius:14,background:"#fff",boxShadow:"0 8px 22px rgba(47,30,90,.035)"};
+const field:React.CSSProperties={padding:11,border:"1px solid #ddd6fe",borderRadius:10,background:"#fff",font:"inherit",minWidth:180};
+const dateLabel=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?new Date(s).toLocaleDateString("he-IL"):"לא זמין";
+function unique<T extends {candidateId:string}>(rows:T[]){return new Set(rows.map(r=>r.candidateId)).size}
+export default function ReportsPage(){
+ const en=useSiteLanguage()==="en";
+ const [company,setCompany]=useState<{id:string;name:string}|null>(null);
+ const [jobs,setJobs]=useState<Job[]>([]);
+ const [apps,setApps]=useState<Application[]>([]);
+ const [offers,setOffers]=useState<Offer[]>([]);
+ const [events,setEvents]=useState<Event[]>([]);
+ const [bookings,setBookings]=useState<Booking[]>([]);
+ const [closed,setClosed]=useState<string[]>([]);
+ const [deleted,setDeleted]=useState<string[]>([]);
+ const [jobFilter,setJobFilter]=useState("all");
+ const [from,setFrom]=useState(""),[to,setTo]=useState("");
+ useEffect(()=>{function load(){try{const ctx=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");if(!ctx?.companyId){setCompany(null);return;}setCompany({id:ctx.companyId,name:ctx.companyName||"חברה ללא שם"});const read=(key:string):unknown=>JSON.parse(localStorage.getItem(key)||"[]");const published=read("how-qa-published-jobs");setJobs([...(ctx.companyId==="demo-a"?demoJobs:[]),...(Array.isArray(published)?published.filter((j:Job)=>j.companyId===ctx.companyId):[])]);const a=read("how-qa-applications"),o=read("how-qa-job-offers"),e=read("how-qa-process-events"),b=read("how-qa-interview-bookings"),c=read("how-qa-closed-jobs"),d=read("how-qa-deleted-jobs");setApps(Array.isArray(a)?a:[]);setOffers(Array.isArray(o)?o:[]);setEvents(Array.isArray(e)?e:[]);setBookings(Array.isArray(b)?b:[]);setClosed(Array.isArray(c)?c:[]);setDeleted(Array.isArray(d)?d:[])}catch{setCompany(null)}}load();window.addEventListener("focus",load);window.addEventListener("storage",load);return()=>{window.removeEventListener("focus",load);window.removeEventListener("storage",load)}},[]);
+ const active=useMemo(()=>jobs.filter(j=>!deleted.includes(j.id)),[jobs,deleted]);
+ const filteredJobs=active.filter(j=>(jobFilter==="all"||j.id===jobFilter)&&(!from||!j.createdAt||j.createdAt.slice(0,10)>=from)&&(!to||!j.createdAt||j.createdAt.slice(0,10)<=to));
+ const ids=new Set(filteredJobs.map(j=>j.id));
+ const filteredApps=apps.filter(a=>ids.has(a.jobId));
+ const filteredOffers=offers.filter(o=>ids.has(o.jobId)&&(!from||!!o.sentAt&&o.sentAt.slice(0,10)>=from)&&(!to||!!o.sentAt&&o.sentAt.slice(0,10)<=to));
+ const filteredEvents=events.filter(e=>ids.has(e.jobId)&&(!from||!!e.at&&e.at.slice(0,10)>=from)&&(!to||!!e.at&&e.at.slice(0,10)<=to));
+ const filteredBookings=bookings.filter(b=>ids.has(b.jobId));
+ const metrics=[["משרות בדוח",filteredJobs.length],["מועמדויות",filteredApps.length],["עברו סינון",unique(filteredApps.filter(a=>a.screeningStatus==="passed"))],["מתאימים",unique(filteredApps.filter(a=>a.fitStatus==="matched"))],["הזמנות שנשלחו",filteredOffers.length],["ראיונות שנקבעו",filteredBookings.length],["בתהליך",unique(filteredApps.filter(a=>a.status==="process"))],["התקבלו",unique(filteredApps.filter(a=>a.status==="hired"||a.status==="accepted"))],["נדחו",unique(filteredApps.filter(a=>a.status==="rejected"||a.status==="not-hired"))]];
+ return <main className="shell" dir="rtl"><QaDemoBanner/><section style={{padding:"38px 0",maxWidth:1080,margin:"auto",display:"grid",gap:22}}><Link href="/recruiter">→ {en?"Dashboard":"דשבורד"}</Link><div><span className="eyebrow">HOW? · דוחות גיוס</span><h1 style={{margin:"8px 0"}}>דוח גיוס מרכזי</h1><p>דוח אחד לחברה עם סינון לפי משרה. נתוני QA בדפדפן בלבד — לא דוח פעילות אמיתי.</p></div>{!company?<section style={card}><h2>לא נבחרה חברה</h2><p>כדי להציג דוח QA יש לבחור חברה בסביבת הבדיקות.</p><Link href="/qa">בחירת חברה ←</Link></section>:<><section style={{...card,display:"grid",gap:12}}><h2 style={{margin:0}}>פרטי חברה ומנוי</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>{[["שם החברה",company.name],["מספר מנוי","טרם הוקצה"],["תאריך תחילת מנוי","לא זמין"],["ותק במערכת","לא ניתן לחשב ללא תאריך התחלה"],["סטטוס מנוי","לא מחובר למערכת מנויים"]].map(([label,value])=><div key={label}><small style={{color:"#625b79"}}>{label}</small><div style={{fontWeight:650,marginTop:4}}>{value}</div></div>)}</div></section><section style={{...card,display:"flex",flexWrap:"wrap",alignItems:"end",gap:12}}><label style={{display:"grid",gap:6}}>משרה<select value={jobFilter} onChange={e=>setJobFilter(e.target.value)} style={field}><option value="all">כל המשרות</option>{active.map(j=><option key={j.id} value={j.id}>{j.title}</option>)}</select></label><label style={{display:"grid",gap:6}}>מתאריך<input type="date" value={from} onChange={e=>setFrom(e.target.value)} style={field}/></label><label style={{display:"grid",gap:6}}>עד תאריך<input type="date" value={to} onChange={e=>setTo(e.target.value)} style={field}/></label><button type="button" onClick={()=>{setJobFilter("all");setFrom("");setTo("")}} style={field}>ניקוי סינון</button></section><section><h2>מדדי גיוס</h2><div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:12}}>{metrics.map(([label,value])=><div key={label} style={card}><div style={{color:"#625b79",fontSize:13}}>{label}</div><strong style={{display:"block",fontSize:28,color:"#5138d3",marginTop:8}}>{value}</strong></div>)}</div></section><section style={card}><h2>משרות ופעילות</h2><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",textAlign:"right",minWidth:660}}><thead><tr>{["משרה","נפתחה בתאריך","סטטוס","מועמדויות","עברו סינון","מתאימים","בתהליך"].map(h=><th key={h} style={{padding:12,borderBottom:"1px solid #ddd6fe"}}>{h}</th>)}</tr></thead><tbody>{filteredJobs.map(j=>{const a=filteredApps.filter(x=>x.jobId===j.id);return <tr key={j.id}><td style={{padding:12,borderBottom:"1px solid #eee9ff"}}>{j.title}</td><td style={{padding:12}}>{dateLabel(j.createdAt)}</td><td style={{padding:12}}>{closed.includes(j.id)?"סגורה":"פתוחה"}</td><td style={{padding:12}}>{a.length}</td><td style={{padding:12}}>{unique(a.filter(x=>x.screeningStatus==="passed"))}</td><td style={{padding:12}}>{unique(a.filter(x=>x.fitStatus==="matched"))}</td><td style={{padding:12}}>{unique(a.filter(x=>x.status==="process"))}</td></tr>})}</tbody></table>{filteredJobs.length===0&&<p>אין משרות התואמות לסינון.</p>}</div></section><section style={card}><h2>המשך תהליך</h2><p>הודעות תהליך שנרשמו: <strong>{filteredEvents.length}</strong>. המדדים מבוססים על הרשומות הקיימות בדפדפן בלבד.</p><p>זמן ממוצע לגיוס ושיעורי מעבר בין שלבים יוצגו לאחר שמירת תאריכי שינוי סטטוס באופן מסודר.</p><p>הפקת PDF תהיה זמינה לאחר חיבור נתוני החברה והמנוי למערכת מרכזית מאובטחת.</p></section></>}<small style={{color:"#625b79"}}>נתוני QA בלבד. סינון התאריכים חל על תאריך פתיחת משרות ועל הודעות והזמנות עם חותמת זמן; מועמדויות ללא תאריך יצירה מוצגות לפי המשרה. נתוני מנוי שאינם קיימים אינם מומצאים.</small></section></main>
 }
