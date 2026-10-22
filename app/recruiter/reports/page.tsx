@@ -58,7 +58,7 @@ export default function ReportsPage(){
  [],
  ["Data note","QA browser data only. Metrics are not production activity."]
  ];
- const safe=(v:string|number)=>String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/"/g,"&quot;");
+ const safe=(v:string|number)=>String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
  const html='<html><head><meta charset="utf-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial,sans-serif">'+rows.map((r,i)=>'<tr>'+r.map(v=>'<td style="padding:12px;min-width:140px;'+([0,1,11,12,16].includes(i)?'background:#ede9ff;font-weight:bold;color:#302064;':'')+'">'+safe(v)+'</td>').join("")+'</tr>').join("")+'</table></body></html>';
  const blob=new Blob([html],{type:"application/vnd.ms-excel;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="how-recruitment-performance.xls";a.click();URL.revokeObjectURL(url);
  }
