@@ -36,21 +36,31 @@ export default function ReportsPage(){
  const filteredBookings=bookings.filter(b=>ids.has(b.jobId));
  const summaries=filteredJobs.map(j=>{const rows=filteredApps.filter(a=>a.jobId===j.id);const total=rows.length,passed=rows.filter(a=>a.screeningStatus==="passed").length,matched=rows.filter(a=>a.fitStatus==="matched").length,process=rows.filter(a=>a.status==="process").length,hired=rows.filter(a=>["hired","accepted"].includes(a.status)).length,rejected=rows.filter(a=>["rejected","not-hired"].includes(a.status)).length,invited=filteredOffers.filter(o=>o.jobId===j.id).length,interviews=filteredBookings.filter(b=>b.jobId===j.id).length;const pct=(n:number,d:number)=>d?Math.round(n/d*100)+"%":tr("אין נתונים","No data");const insight=total===0?tr("טרם נרשמו מועמדויות למשרה. אין בסיס להערכת איכות הגיוס.","No applications have been recorded yet. There is not enough data to assess recruitment outcomes."):passed===0?tr("עדיין אין מועמדים שעברו סינון. כדאי לבדוק את דרישות המשרה ואת סטטוס הבדיקות.","No candidates have passed screening yet. Review the job requirements and pending screenings."):matched===0?tr("לא סומנו מועמדים מתאימים. כדאי לבחון האם הדרישות תואמות את המועמדויות שהתקבלו.","No candidates have been marked as matched. Review how the requirements align with applications."):process===0&&hired===0?tr("יש מועמדים מתאימים אך עדיין אין התקדמות מתועדת בתהליך. כדאי לבדוק מועמדים שממתינים להחלטה.","Matched candidates have not yet progressed in the recorded process. Review pending decisions."):tr("יש התקדמות מתועדת בתהליך הגיוס. כדאי לעקוב אחר זמני ההמתנה והחלטות המגייסת.","Recruitment progress has been recorded. Monitor waiting times and recruiter decisions.");return {job:j,total,passed,matched,process,hired,rejected,invited,interviews,pct,insight}});
  function exportSummaryExcel(){if(!company)return;
- const rows=[
- [tr("Recruitment overview","Recruitment overview"),company.name],
- [tr("Metric","Metric"),tr("Value","Value")],
- ...metrics.map(([label,value])=>[String(label),String(value)]),
- ["",""],
- [tr("Job performance","Job performance")],
- [tr("Job","Job"),tr("Applications","Applications"),tr("Passed screening","Passed screening"),tr("Matched","Matched"),tr("In progress","In progress"),tr("Hired","Hired"),tr("Interviews","Interviews"),tr("Invitations","Invitations")],
+ const total=filteredApps.length;
+ const rows:(string|number)[][]=[
+ ["HOW? — Recruitment performance report",company.name],
+ ["Metric","Value"],
+ ["Jobs",filteredJobs.length],
+ ["Applications",total],
+ ["Passed screening",filteredApps.filter(a=>a.screeningStatus==="passed").length],
+ ["Matched",filteredApps.filter(a=>a.fitStatus==="matched").length],
+ ["In progress",filteredApps.filter(a=>a.status==="process").length],
+ ["Hired",filteredApps.filter(a=>["hired","accepted"].includes(a.status)).length],
+ ["Interviews",filteredBookings.length],
+ ["Invitations",filteredOffers.length],
+ [],
+ ["Job performance"],
+ ["Job","Applications","Screened","Matched","In progress","Hired","Interviews","Invitations"],
  ...summaries.map(x=>[x.job.title,x.total,x.passed,x.matched,x.process,x.hired,x.interviews,x.invited]),
- ["",""],
- [tr("Recruitment insights","Recruitment insights")],
- ...summaries.map(x=>[x.job.title,en?({0:"No applications recorded."} as Record<number,string>)[x.total]||"Review the screening and hiring metrics above.":x.insight])
+ [],
+ ["Recruitment insights"],
+ ...summaries.map(x=>[x.job.title,x.insight]),
+ [],
+ ["Data note","QA browser data only. Metrics are not production activity."]
  ];
- const safe=(v:unknown)=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/"/g,"&quot;");
- const html='<html><head><meta charset="utf-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial,sans-serif">'+rows.map((r,i)=>'<tr>'+r.map(v=>'<td style="padding:12px;min-width:150px;'+(i===0||i===1||i===rows.findIndex(x=>x[0]===tr("Job","Job"))?'background:#eae5ff;font-weight:bold;color:#2b1c76;':'')+'">'+safe(v)+'</td>').join("")+'</tr>').join("")+'</table></body></html>';
- const blob=new Blob(["\uFEFF",html],{type:"application/vnd.ms-excel;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="how-recruitment-overview.xls";a.click();URL.revokeObjectURL(url)
+ const safe=(v:string|number)=>String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/"/g,"&quot;");
+ const html='<html><head><meta charset="utf-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial,sans-serif">'+rows.map((r,i)=>'<tr>'+r.map(v=>'<td style="padding:12px;min-width:140px;'+([0,1,11,12,16].includes(i)?'background:#ede9ff;font-weight:bold;color:#302064;':'')+'">'+safe(v)+'</td>').join("")+'</tr>').join("")+'</table></body></html>';
+ const blob=new Blob([html],{type:"application/vnd.ms-excel;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="how-recruitment-performance.xls";a.click();URL.revokeObjectURL(url);
  }
  function exportExpanded(){if(!company)return;const header=["חברה",tr("משרה","Job"),"מזהה משרה","תאריך פתיחה","סטטוס משרה","מזהה מועמד QA","שלב גיוס","תוצאת סינון","התאמה"];const rows=filteredJobs.flatMap(j=>{const a=filteredApps.filter(x=>x.jobId===j.id);return a.length?a.map(x=>[company.name,j.title,j.id,j.createdAt||"",closed.includes(j.id)?tr("סגורה","Closed"):tr("פתוחה","Open"),x.candidateId,x.status,x.screeningStatus||"",x.fitStatus||""]):[[company.name,j.title,j.id,j.createdAt||"",closed.includes(j.id)?tr("סגורה","Closed"):tr("פתוחה","Open"),"","","",""]]});const esc=(v:string)=>'"'+String(v).replace(/^[=+@\\-]/,"'").replace(/"/g,'""')+'"';const csv="\uFEFF"+[header,...rows].map(row=>row.map(esc).join(",")).join("\r\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="how-qa-recruitment-report.csv";a.click();URL.revokeObjectURL(url)}
  const metrics=[[tr("משרות בדוח","Jobs in report"),filteredJobs.length],[tr("מועמדויות","Applications"),filteredApps.length],[tr("עברו סינון","Passed screening"),unique(filteredApps.filter(a=>a.screeningStatus==="passed"))],[tr("מתאימים","Matched"),unique(filteredApps.filter(a=>a.fitStatus==="matched"))],[tr("הזמנות שנשלחו","Invitations sent"),filteredOffers.length],[tr("ראיונות שנקבעו","Interviews scheduled"),filteredBookings.length],[tr("בתהליך","In progress"),unique(filteredApps.filter(a=>a.status==="process"))],[tr("התקבלו","Hired"),unique(filteredApps.filter(a=>a.status==="hired"||a.status==="accepted"))],[tr("נדחו","Rejected"),unique(filteredApps.filter(a=>a.status==="rejected"||a.status==="not-hired"))]];
