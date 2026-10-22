@@ -15,7 +15,7 @@ export default function RecruiterDashboard(){
  const [qaCompany,setQaCompany]=useState("");
  const [tasks,setTasks]=useState<{id:string;companyId:string;assignee:string;title:string;jobId:string;due:string;status:string;note:string}[]>([]);
  const [taskNote,setTaskNote]=useState<Record<string,string>>({});
- function refreshTasks(){try{const c=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");setQaCompany(c?.companyId||"");const raw=JSON.parse(localStorage.getItem("how-qa-company-tasks")||"[]");setTasks(Array.isArray(raw)?raw.filter((t:{companyId:string;assignee:string})=>t.companyId===c?.companyId&&t.assignee==="recruiter-1"):[])}catch{setTasks([])}}
+ function refreshTasks(){try{const c=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");setQaCompany(c?.companyId||"");const raw=JSON.parse(localStorage.getItem("how-qa-company-tasks")||"[]");setTasks(Array.isArray(raw)?raw.filter((t:{companyId:string;assignee:string})=>t.companyId===c?.companyId&&t.assignee===(c?.recruiterId||"recruiter-1")):[])}catch{setTasks([])}}
  function updateTask(id:string,status:string){try{const raw=JSON.parse(localStorage.getItem("how-qa-company-tasks")||"[]");if(!Array.isArray(raw))return;const next=raw.map(t=>t.id===id&&t.companyId===qaCompany?{...t,status,note:taskNote[id]??t.note}:t);localStorage.setItem("how-qa-company-tasks",JSON.stringify(next));refreshTasks()}catch{}}
  const [appointments,setAppointments]=useState<{id:string;date:string;time:string;name:string;job:string}[]>([]);
  useEffect(()=>{refreshTasks();window.addEventListener("focus",refreshTasks);window.addEventListener("storage",refreshTasks);return()=>{window.removeEventListener("focus",refreshTasks);window.removeEventListener("storage",refreshTasks)}},[]);
