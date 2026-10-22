@@ -8,7 +8,9 @@ type Settings={days:number[];start:string;end:string;breakStart:string;breakEnd:
 const defaults:Settings={days:[0,1,2,3,4],start:"09:00",end:"17:00",breakStart:"12:30",breakEnd:"13:00",breakEnabled:false,durations:{phone:15,video:30,onsite:45}};
 const dayNames=["א׳","ב׳","ג׳","ד׳","ה׳","ו׳","ש׳"];
 const boxStyle:React.CSSProperties={border:"1px solid #e4ddff",borderRadius:12,padding:11,background:"#fff"};
-const field:React.CSSProperties={border:"1px solid #ddd6fe",borderRadius:8,padding:"6px 8px",font:"inherit",fontSize:13,width:"100%",boxSizing:"border-box"};
+const field:React.CSSProperties={border:"1px solid #dcd5ff",borderRadius:12,padding:"10px 34px 10px 12px",font:"inherit",fontSize:13,width:"100%",boxSizing:"border-box",background:"#fff",color:"#21175b",minHeight:42,outlineColor:"#6953e9",cursor:"pointer"};
+const calendarButton:React.CSSProperties={border:"1px solid #dcd5ff",borderRadius:11,padding:"10px 14px",background:"#fff",color:"#39279b",font:"inherit",fontWeight:600,fontSize:13,minHeight:40,cursor:"pointer",boxShadow:"0 1px 3px rgba(61,40,142,.05)"};
+const todayButton:React.CSSProperties={...calendarButton,background:"#f0ecff",borderColor:"#cbbfff",color:"#3922a8"};
 function minutes(s:string){const [h,m]=s.split(":").map(Number);return h*60+m}
 function clock(n:number){return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0")}
 function localDate(d:Date){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -73,10 +75,10 @@ export default function SchedulePage(){
  <div style={{...boxStyle,display:"grid",gap:12}}>
  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
  <h2 style={{margin:0,fontSize:17}}>{tr("יומן שבועי","Weekly calendar")}</h2>
- <div style={{display:"flex",gap:8,alignItems:"center"}}>
- <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()-7);setDay(localDate(d));setSelected("")}}>{tr("שבוע קודם","Previous week")}</button>
- <button type="button" onClick={()=>{setDay(localDate(new Date()));setSelected("")}}>{tr("היום","Today")}</button>
- <button type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()+7);setDay(localDate(d));setSelected("")}}>{tr("שבוע הבא","Next week")}</button>
+ <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+ <button style={calendarButton} type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()-7);setDay(localDate(d));setSelected("")}}>{tr("שבוע קודם","Previous week")}</button>
+ <button style={todayButton} type="button" onClick={()=>{setDay(localDate(new Date()));setSelected("")}}>{tr("היום","Today")}</button>
+ <button style={calendarButton} type="button" onClick={()=>{const d=new Date((day||localDate(new Date()))+"T12:00:00");d.setDate(d.getDate()+7);setDay(localDate(d));setSelected("")}}>{tr("שבוע הבא","Next week")}</button>
  </div></div>
  <p style={{margin:0,color:"#64748b",fontSize:13}}>{tr("לחצי על שעה פנויה כדי לקבוע ראיון ידני. הזמנה אוטומטית למועמדת עדיין בפיתוח.","Select an available slot to schedule a QA interview manually. Automated candidate invitations are not yet available.")}</p>
  <div style={{overflowX:"auto",maxHeight:"min(62vh,560px)",overflowY:"auto"}}>
