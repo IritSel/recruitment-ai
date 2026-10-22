@@ -16,14 +16,15 @@ export default function NewJob(){
  const [newText,setNewText]=useState("");
  const [nextId,setNextId]=useState(1);
  const [saved,setSaved]=useState(false);
+ const [publishError,setPublishError]=useState<"company"|"storage"|null>(null);
  function add(){const text=newText.trim();if(!text)return;setCriteria(old=>[...old,{id:nextId,text,priority:"flexible"}]);setNextId(n=>n+1);setNewText("")}
  function change(id:number,patch:Partial<Criterion>){setCriteria(old=>old.map(c=>c.id===id?{...c,...patch}:c))}
- function publishQa(){try{const ctx=JSON.parse(sessionStorage.getItem("qa-demo-context")||"{}");if(!ctx.companyId){setSaved(true);return;}const job={id:"qa-"+Date.now(),companyId:ctx.companyId,title,description:desc,salary,employment,criteria:criteria.map(c=>({...c})),createdAt:new Date().toISOString(),qa:true};const raw=localStorage.getItem("how-qa-published-jobs");let existing:unknown=[];try{existing=raw?JSON.parse(raw):[]}catch{}const jobs=Array.isArray(existing)?existing:[];localStorage.setItem("how-qa-published-jobs",JSON.stringify([job,...jobs]));router.push("/recruiter/jobs?qaPublished=1")}catch{setSaved(true)}}
+ function publishQa(){try{const ctx=JSON.parse(sessionStorage.getItem("qa-demo-context")||"{}");if(ctx.kind!=="demo"||ctx.role!=="recruiter"||!ctx.companyId){setPublishError("company");return;}const job={id:"qa-"+Date.now(),companyId:ctx.companyId,title,description:desc,salary,employment,criteria:criteria.map(c=>({...c})),createdAt:new Date().toISOString(),qa:true};const raw=localStorage.getItem("how-qa-published-jobs");let existing:unknown=[];try{existing=raw?JSON.parse(raw):[]}catch{}const jobs=Array.isArray(existing)?existing:[];localStorage.setItem("how-qa-published-jobs",JSON.stringify([job,...jobs]));setPublishError(null);router.push("/recruiter/jobs?qaPublished=1")}catch{setPublishError("storage")}}
  return <main className="shell" dir={en?"ltr":"rtl"}><section className="choice" style={{maxWidth:760,margin:"55px auto",display:"grid",gap:16}}>
  <button type="button" onClick={()=>step===1?setStep(0):window.location.assign("/recruiter/jobs")} style={{border:0,background:"transparent",cursor:"pointer",justifySelf:"start"}}>→ {step===1?(en?"Back to editing":"חזרה לעריכה"):(en?"Back to jobs":"חזרה למשרות")}</button>
  <span className="eyebrow">{step===1?(en?"Review job posting · QA":"בדיקת פרופיל המשרה · QA"):(en?"Create job · QA":"יצירת משרה · QA")}</span>
  <h1 style={{margin:0}}>{step===1?title:(en?"Create job":"יצירת משרה")}</h1>
- {step===0?<form onSubmit={e=>{e.preventDefault();if(criteria.length===0||criteria.some(c=>!c.text.trim())||newText.trim())return;setStep(1);setSaved(false)}} style={{display:"grid",gap:14}}>
+ {step===0?<form onSubmit={e=>{e.preventDefault();if(criteria.length===0||criteria.some(c=>!c.text.trim())||newText.trim())return;setStep(1);setSaved(false);setPublishError(null)}} style={{display:"grid",gap:14}}>
  <p>{en?"Start with a free-text job description. You decide which requirements are essential, preferred, or flexible.":"אפשר להתחיל מתיאור חופשי. כאן המגייסת מגדירה בעצמה מה חובה, מה יתרון ומה גמיש."}</p>
  <label>{en?"Job title":"שם המשרה"}<input required style={field} value={title} onChange={e=>setTitle(e.target.value)}/></label>
  <label>{en?"Job description and requirements":"תיאור התפקיד והדרישות"}<textarea required style={{...field,minHeight:160}} value={desc} onChange={e=>setDesc(e.target.value)}/></label>
@@ -52,7 +53,8 @@ export default function NewJob(){
  <button type="button" onClick={()=>setStep(0)} style={{border:"1px solid #ddd6fe",background:"white",padding:12,borderRadius:10,cursor:"pointer"}}>{en?"Edit requirements":"עריכת הדרישות"}</button>
  </section>
  <div style={{padding:12,borderRadius:10,background:"#f8fafc",fontSize:13}}>{en?"QA posting: This job is saved in this browser only. It will not reach real candidates or trigger screening.":"פרסום QA: המשרה תופיע ברשימת המשרות בדפדפן זה בלבד. לא תפורסם למועמדות אמיתיות ולא תפעיל סינון."}</div>
- {saved&&<p role="status" style={{color:"#166534"}}>{en?"Could not save the QA job in this browser. Please try again. Classifications: ":"לא ניתן לשמור את משרת ה־QA בדפדפן. נסי שוב. הסיווגים: "}{criteria.map(c=>c.text+" — "+choices.find(x=>x.value===c.priority)?.label).join(" | ")||(en?"No requirements":"אין דרישות")}.</p>}
+ {publishError==="company"&&<div role="alert" style={{color:"#92400e",background:"#fffbeb",padding:12,borderRadius:10}}><strong>{en?"Company selection required":"נדרשת בחירת חברה"}</strong><p>{en?"This QA job cannot be published because your session is not linked to a demo company as a recruiter. Return to the QA workspace, select Recruiter and a company, then create the job again.":"לא ניתן לפרסם משרת QA ללא שיוך לחשבון מגייסת בחברת דמו. יש לחזור לסביבת QA, לבחור מגייסת וחברה וליצור מחדש את המשרה."}</p><Link href="/qa">{en?"Select QA company":"בחירת חברת QA"}</Link></div>}
+ {publishError==="storage"&&<p role="alert" style={{color:"#b42318"}}>{en?"Could not save the QA job in this browser. Check that browser storage is enabled and try again.":"לא ניתן לשמור את משרת ה־QA בדפדפן. בדקי שהשמירה המקומית מופעלת ונסי שוב."}</p>}
  <button className="button" type="button" onClick={publishQa} disabled={criteria.some(c=>!c.text.trim())}>{en?"Publish QA job and view listings":"פרסום משרת QA וצפייה ברשימה"}</button>
  <Link href="/recruiter/jobs">{en?"Back to job listings":"חזרה לרשימת המשרות"}</Link>
  </>}
