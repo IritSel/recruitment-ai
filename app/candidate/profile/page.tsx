@@ -52,7 +52,8 @@ function classifyCvText(raw:string):ParsedCV{
  for(const key of ["experience","education","skills","unclassified"] as const)output[key]=buckets[key].join("\n");
  return output;
 }
-\nexport default function CandidateProfile(){
+
+export default function CandidateProfile(){
  const en=useSiteLanguage()==="en";
  const [profiles,setProfiles]=useState<Profile[]>(examples);
  const [selected,setSelected]=useState(examples[0].id);
