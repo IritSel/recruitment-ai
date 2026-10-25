@@ -124,11 +124,10 @@ body button,body input,body select,body textarea{font:inherit}
  .shell .howRecruiterJobMetrics strong{font-size:18px}
 }
 
-/* Desktop visual density requested: reproduce the appearance at browser zoom 67% while browser remains at 100%.
-   Apply proportional scaling to the entire application (not just typography).
-   CSS zoom alters layout viewport as browser zoom does. Mobile/tablet unchanged. */
+/* Desktop app layout: moderately compact, proportional whole-page sizing at standard browser zoom.
+   Mobile/tablet unchanged. */
 @media (min-width: 1100px) {
-  html { zoom: 0.82; }
+  html { zoom: 0.88; }
 }
 
 /* Reduce trailing whitespace at the end of the HOW landing page on desktop. */
