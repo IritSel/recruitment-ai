@@ -213,3 +213,87 @@ body{font-size:15px;line-height:1.6}
 .howRecruiter .choice h2{font-size:23px!important}
 @media(max-width:950px){.howRecruiterJobGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.howRecruiterBottom{grid-template-columns:1fr!important}.shell .navlinks{gap:12px!important}}
 @media(max-width:700px){.shell:not(.howSite){padding-inline:18px!important}.shell .nav{min-height:70px!important}.shell .navlinks{width:100%;font-size:13px!important;gap:10px!important}.shell h1{font-size:30px!important}.shell h2{font-size:22px!important}.shell .choice{padding:18px!important}.howRecruiterHeading{flex-direction:column;align-items:stretch}.howRecruiterStats{gap:9px!important}.howRecruiterStats>div{min-height:105px;padding:12px!important}.howRecruiterStats span{font-size:12px!important}.howRecruiterStats strong{font-size:29px!important}.howRecruiterStats small{font-size:10px!important}.howRecruiterJobGrid{grid-template-columns:1fr!important}.howRecruiterJob{min-height:0;padding:19px!important}.howRecruiterJobMetrics strong{font-size:24px!important}.howRecruiter .howActionPanel{padding:18px!important}}
+
+
+/* Reference design approved 2026-10-25 — unified HOW visual language.
+   Cards are white; lilac edges; plum headings; mint is used for success.
+   This section also overrides legacy inline QA colors via restrained selectors. */
+:root {
+ --how-page:#FAF9FD;--how-card:#FFFFFF;--how-border:#E7DDF7;
+ --how-heading:#30226A;--how-accent:#7256B9;--how-lilac-bg:#F0EAFB;
+ --how-mint-bg:#E6F7F1;--how-green:#13886B;--how-copy:#5F5B7C;
+}
+html,body{background:var(--how-page);color:var(--how-heading)}
+body{font-family:Arial,"Noto Sans Hebrew","Segoe UI",sans-serif}
+.shell:not(.howSite){max-width:1320px!important}
+.shell .nav{background:transparent;border-bottom:1px solid #EEE8F7}
+.shell .brand{color:var(--how-heading)!important}
+.shell .navlinks{font-size:15px!important;color:#514477!important}
+.shell .navlinks a,.shell .navlinks b{padding-block:7px}
+.shell h1,.shell h2,.shell h3{color:var(--how-heading)!important;letter-spacing:0!important}
+.shell p,.shell li{line-height:1.75}
+.shell .eyebrow{background:var(--how-lilac-bg)!important;color:#6142A3!important}
+.shell .choice,.shell .storyGrid article,.shell .howRecruiterStats>div,.shell .howRecruiterJob,.shell .howActionPanel{
+ background:#fff!important;border:1px solid var(--how-border)!important;
+ border-radius:16px!important;box-shadow:0 7px 26px #49376A0B!important;
+}
+.shell .button{background:linear-gradient(110deg,#6240A3,#7655BB)!important;color:white!important;border-color:transparent!important;box-shadow:0 4px 11px #6240A320;min-height:44px!important}
+.shell .button:hover:not(:disabled){background:linear-gradient(110deg,#52348A,#6240A3)!important}
+.shell .secondaryButton{background:#FAF7FF!important;color:#6142A3!important;border:1px solid #D7C4FA!important;box-shadow:none}
+.shell .secondaryButton:hover:not(:disabled){background:#F0EAFB!important}
+.shell .choice button:not(.button),.shell .choice select,.shell .choice input,.shell .choice textarea,
+.shell button:not(.button):not([role="switch"]){border-radius:10px}
+.shell button:not(.button):not([role="switch"]):not(:disabled){border-color:#D7C4FA;color:#493475}
+.shell button:not(.button):not([role="switch"]):not(:disabled):hover{background-color:#F6F1FF}
+.shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.shell textarea,.shell select{border:1px solid #DED5EF!important;background:#fff!important;color:#30226A!important}
+.shell input:focus-visible,.shell textarea:focus-visible,.shell select:focus-visible{outline:2px solid #9B86D1}
+.shell table{border:1px solid var(--how-border);border-radius:15px;box-shadow:0 5px 20px #49376A08}
+.shell th{background:#F6F1FF;color:#493475}
+.shell td{border-bottom-color:#F0EAFB}
+.shell .howRecruiterStats strong,.shell .howRecruiterJobMetrics strong{color:#45317E!important}
+.shell .howRecruiterJob .howJobStatus{background:#E6F7F1!important;color:#13886B!important}
+.shell .howRecruiterHeading .button{font-weight:750}
+.shell .howPanelIcon{background:#F0EAFB!important;color:#6240A3!important}
+.shell .howPanelIcon.mint{background:#E6F7F1!important;color:#13886B!important}
+.shell .howRecruiterJobMetrics{border-color:#EEE8F7}
+.shell .howRecruiterJob:hover{border-color:#CEBBEE!important}
+.shell .howRecruiterJob h3{margin-block:14px!important}
+.shell .howActionPanel p{color:var(--how-copy)}
+.shell .howActiveNav{color:#6745AD!important}
+.shell .backLink{color:#6745AD}
+.languageSwitch{background:white;border:1px solid var(--how-border);box-shadow:0 6px 20px #49376A12}
+/* Candidate profile: the supplied screenshot's two-panel hierarchy */
+.shell .profile-page{position:relative}
+.shell .profile-title{font-size:clamp(30px,3.2vw,41px)!important;margin-bottom:9px}
+.shell .profile-selector{background:#FFFFFF!important;border-color:#E7DDF7!important;padding:18px 22px!important}
+.shell .qa-profile-layout{gap:22px!important}
+.shell .profile-card{padding:24px 25px!important;margin-bottom:0!important}
+.shell .profile-card>div:first-child h2{font-size:22px!important;font-weight:800}
+.shell .profile-card>div:first-child button,.shell .profile-cv-card button:not(.button){
+ background:#FBF9FF!important;border:1px solid #D7C4FA!important;color:#5D3F9D!important;
+ padding:9px 14px!important;font-size:14px!important;font-weight:700!important;min-height:39px;
+}
+.shell .profile-field{padding:12px 4px;border-bottom:1px solid #EEE8F7;display:grid;grid-template-columns:minmax(110px,32%) minmax(0,1fr);gap:12px;align-items:start}
+.shell .profile-field:last-child{border-bottom:0}
+.shell .profile-field-label{font-size:14px;color:#625A85;font-weight:700}
+.shell .profile-field-value{font-size:15px;color:#30226A;margin:0!important;overflow-wrap:anywhere}
+.shell .profile-field.is-editing{background:#FCFAFF;border-radius:10px;padding-inline:12px}
+.shell .profile-cv-panel{padding:22px!important}
+.shell .profile-cv-panel h2{font-size:23px!important;margin:0 0 8px}
+.shell .profile-cv-panel>p{font-size:13px;color:#7D739A}
+.shell .profile-cv-card{border:1px solid #E7DDF7!important;background:#fff!important;border-radius:13px!important;padding:15px!important;box-shadow:0 4px 18px #49376A08}
+.shell .profile-cv-card .cv-card-title{font-size:15px;color:#352671}
+.shell .profile-cv-card p{color:#777095;font-size:13px}
+.shell .profile-cv-card .button{min-height:38px!important;padding:8px 12px!important}
+.shell .profile-cv-card .cv-tools summary{cursor:pointer;color:#6846A9;font-weight:700;padding-block:9px}
+.shell .profile-page .choice>small{display:block;color:#777095;font-size:12px;margin-top:12px}
+.shell .profile-page .choice,.shell .profile-cv-card{transition:box-shadow .18s,border-color .18s}
+.shell .profile-page .choice:hover{box-shadow:0 9px 30px #49376A12!important}
+/* Keep the homepage layout; harmonize its accents with the app reference. */
+.howSite{--howNavy:#30226A;--howPurple:#6748AB;--howMint:#DDF5EA;--howLight:#F0EAFB}
+.howSite .howChoice{background:white;border:1px solid #E7DDF7;box-shadow:0 7px 24px #49376A0B}
+.howSite .howPrimary,.howSite .howFakeAction{background:#6240A3;color:white}
+.howSite .howBenefits{background:#F9F7FC;border-color:#E7DDF7}
+.howSite .howSteps{background:linear-gradient(#FAF9FD,#F1ECFA)}
+@media(max-width:950px){.shell .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-cv-panel{position:static!important}}
+@media(max-width:650px){.shell .profile-field{grid-template-columns:1fr;gap:4px}.shell .profile-card{padding:19px!important}.shell .profile-cv-panel{padding:19px!important}.shell .profile-card>div:first-child{flex-wrap:wrap}}
