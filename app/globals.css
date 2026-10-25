@@ -95,3 +95,62 @@ body{background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans Hebrew",
   .howRecruiterJob { padding: 12px; }
   .howRecruiterJobMetrics strong { font-size: 18px; }
 }
+
+
+/* HOW? approved soft palette — Oct 2026. Off-white, white, plum, lilac & mint.
+   Color roles are deliberate: no beige or competing pastel card backgrounds. */
+:root {
+ --bg:#FAF8F5;--surface:#FFFFFF;--mint:#DAF3E9;--teal:#245D51;
+ --lav:#EAE3F5;--ink:#45315F;--muted:#635A70;--line:#E9E3EB;
+ --how-primary:#45315F;--how-primary-hover:#342147;--how-plum:#45315F;
+ --how-lilac:#EAE3F5;--how-mint:#DAF3E9;--how-offwhite:#FAF8F5;
+}
+body{background:#FAF8F5;color:#45315F}
+.howSite{--howNavy:#45315F;--howPurple:#45315F;--howMint:#DAF3E9;--howLight:#EAE3F5;background:#FAF8F5;color:#45315F}
+.howSite .howLogo,.howSite .howLogo strong,.howSite .howIntro h1,.howSite .howIntro h2{color:#45315F}
+.howSite .howLogo strong span,.howSite .howMark{color:#45315F}
+.howSite .howPrimary,.howSite .howFakeAction{background:#45315F;color:white}
+.howSite .howPrimary:hover{background:#342147}
+.howSite .howSignIn{border-color:#D9CDE8;color:#45315F;background:white}
+.howSite .howCandidate,.howSite .howEmployer{background:#FFFFFF;border:1px solid #E9E3EB;box-shadow:0 10px 32px #45315F0A}
+.howSite .howChoiceIcon{color:#45315F}
+.howSite .howCandidate .howChoiceIcon{color:#245D51}
+.howSite .howArrow{background:#45315F;color:white}
+.howSite .howCandidate .howArrow{background:#45315F}
+.howSite .howGlow{background:radial-gradient(ellipse at 40% 45%,#DAF3E9 0%,#EAE3F5 50%,#FAF8F5 84%)}
+.howSite .howDashboard,.howSite .howJobCard{border-color:#E9E3EB;box-shadow:0 17px 43px #45315F18}
+.howSite .howDashSidebar{background:#FAF8F5}
+.howSite .howDashSidebar .active,.howSite .howFilters span,.howSite .howTags span{background:#EAE3F5;color:#45315F}
+.howSite .howMatch{background:#DAF3E9;color:#245D51}
+.howSite .howBenefits{background:#FFFFFF;border-block:1px solid #E9E3EB}
+.howSite .howSteps{background:linear-gradient(#FAF8F5,#F2EEF8)}
+.howSite .howStepsGrid article{border-color:#E9E3EB}
+.howSite .howStepsGrid article>span{background:#EAE3F5;color:#45315F}
+.shell .brand,.shell h1,.shell h2,.shell h3{color:#45315F}
+.shell .nav{border-bottom-color:#E9E3EB}
+.shell .navlinks,.shell p{color:inherit}
+.shell .navlinks a:hover,.shell .backLink{color:#45315F}
+.shell .eyebrow{background:#EAE3F5;color:#45315F}
+.shell .choice,.shell .storyGrid article{border-color:#E9E3EB;box-shadow:0 10px 28px #45315F0B}
+.shell a.choice:hover,.shell .choice:hover{border-color:#C8B9D8;box-shadow:0 12px 30px #45315F14}
+.shell .button{background:#45315F;color:#FFFFFF}
+.shell .button:hover:not(:disabled){background:#342147}
+.shell .secondaryButton{background:#FFFFFF;color:#45315F;border:1px solid #D9CDE8}
+.shell .secondaryButton:hover:not(:disabled){background:#F6F2FA;color:#45315F}
+.shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.shell textarea,.shell select{border-color:#D9CDE8!important;color:#45315F!important;outline-color:#8F76AF}
+.shell input:focus-visible,.shell textarea:focus-visible,.shell select:focus-visible,.shell button:focus-visible,.shell a:focus-visible{outline-color:#9D84B9}
+.shell table{border-color:#E9E3EB}
+.shell th{background:#F7F3FB}
+.languageSwitch{border-color:#D9CDE8;color:#45315F}
+.howRecruiter .howLogoQuestion,.howRecruiter .howActiveNav{color:#45315F}
+.howRecruiterHeading .button{box-shadow:0 8px 18px #45315F20}
+.howRecruiterStats>div,.howRecruiterJob{background:#FFFFFF;border-color:#E9E3EB;box-shadow:0 9px 24px #45315F0B}
+.howRecruiterStats strong,.howRecruiterJobMetrics strong{color:#45315F}
+.howRecruiterJob .howJobStatus{background:#DAF3E9;color:#245D51}
+.howRecruiterJobMetrics{border-block-color:#E9E3EB}
+.howJobView,.howRecruiterSectionTitle>a,.howRecruiter .howActionPanel a{color:#45315F}
+.howRecruiter .howActionPanel,.howRecruiter .howActionPanel:last-child{background:#FFFFFF;border-color:#E9E3EB}
+.howPanelIcon{background:#EAE3F5;color:#45315F}
+.howPanelIcon.mint{background:#DAF3E9;color:#245D51}
+.howRecruiter .howActionPanel p{color:#635A70}
+@media(prefers-reduced-motion:reduce){.howSite .howChoice,.howRecruiterJob{transition:none}}
