@@ -128,5 +128,8 @@ body button,body input,body select,body textarea{font:inherit}
    Apply proportional scaling to the entire application (not just typography).
    CSS zoom alters layout viewport as browser zoom does. Mobile/tablet unchanged. */
 @media (min-width: 1100px) {
-  html { zoom: 0.67; }
+  html { zoom: 0.82; }
 }
+
+/* Reduce trailing whitespace at the end of the HOW landing page on desktop. */
+@media(min-width:1100px){.howSite .howSteps{padding-bottom:30px}.howSite .howStepsGrid{margin-bottom:0}.howSite{min-height:0}}
