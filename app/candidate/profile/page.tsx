@@ -19,38 +19,44 @@ function PreferenceSelect({value,onChange,en,role,city}:{value:string;onChange:(
 
 type ParsedCV={experience:string;education:string;skills:string;unclassified:string};
 function classifyCvText(raw:string):ParsedCV{
- const output:ParsedCV={experience:"",education:"",skills:"",unclassified:""};
- const buckets:{[K in keyof ParsedCV]:string[]}={experience:[],education:[],skills:[],unclassified:[]};
- const headingRules:[keyof ParsedCV,RegExp][]=[
-  ["experience",/^(?:ניסיון(?:\s+(?:תעסוקתי|מקצועי))?|תעסוקה|תפקידים קודמים|employment|professional experience|work experience|experience|career history)\s*[:：-]?$/i],
-  ["education",/^(?:השכלה(?:\s+והכשרה)?|לימודים|הכשרה(?:\s+מקצועית)?|education|academic background|qualifications)\s*[:：-]?$/i],
-  ["skills",/^(?:מיומנויות(?:\s+(?:מקצועיות|עיקריות))?|כישורים|יכולות|שפות|שליטה בתוכנות|skills|technical skills|languages|competencies)\s*[:：-]?$/i]
+ const buckets:Record<keyof ParsedCV,string[]>={experience:[],education:[],skills:[],unclassified:[]};
+ type Section=keyof ParsedCV;
+ const headings:{section:Section;pattern:RegExp}[]=[
+  {section:"experience",pattern:/^(?:ניסיון(?:\s+(?:תעסוקתי|מקצועי))?|רקע תעסוקתי|תעסוקה|תפקידים קודמים|employment history|professional experience|work experience|experience|career history)$/i},
+  {section:"education",pattern:/^(?:השכלה(?:\s+והכשרה)?|לימודים|הכשרות(?:\s+מקצועיות)?|קורסים(?:\s+והסמכות)?|education|academic background|qualifications|certifications|courses)$/i},
+  {section:"skills",pattern:/^(?:מיומנויות(?:\s+(?:מקצועיות|עיקריות))?|כישורים(?:\s+מקצועיים)?|יכולות|כלים וטכנולוגיות|שפות|שליטה בתוכנות|skills|technical skills|languages|competencies|tools)$/i}
  ];
- const education=/\b(?:B\.?A\.?|B\.?Sc\.?|M\.?A\.?|M\.?Sc\.?|MBA|PhD|university|college|bachelor|master|degree|diploma)\b|תואר|בגרות|אוניברסיט|מכלל|הנדסאי|תעודת הסמכה|קורס מקצועי/i;
+ const headingPrefix=/^[\s\-•*#]+|[\s:：\-–]+$/g;
+ const education=/\b(?:B\.?A\.?|B\.?Sc\.?|M\.?A\.?|M\.?Sc\.?|MBA|PhD|university|college|bachelor|master|degree|diploma|certificate)\b|תואר|בגרות|אוניברסיט|מכלל|הנדסאי|הסמכה|קורס|תעודה/i;
  const work=/ניסיון|עבדתי|עבד|עובדת|מעסיק|תפקיד|אחראי|אחראית|מנהל|מנהלת|נציג|נציגת|רכז|רכזת|שירות לקוחות|מכירות|חברת|חברה בע|employment|worked|employer|position|coordinator|representative|manager|customer service/i;
- const skill=/\b(?:CRM|Excel|SQL|Python|JavaScript|JIRA|SAP|Word|PowerPoint|Salesforce|English|Hebrew|Russian|Postman|Selenium)\b|מיומנ|שליטה|שפות|תקשורת בינאישית|עבודת צוות|פתרון בעיות|יכולת ניהול/i;
- const entries=raw.replace(/\r/g,"").split("\n").map(x=>x.trim()).filter(Boolean);
- let section:keyof ParsedCV|null=null;
- for(const line of entries){
-  const cleaned=line.replace(/^[•*\-–\s]+/,"").trim();
-  const title=headingRules.find(([,re])=>re.test(cleaned));
-  if(title){section=title[0];continue}
-  if(cleaned.length<3)continue;
-  const isEdu=education.test(cleaned),isWork=work.test(cleaned),isSkill=skill.test(cleaned);
-  const ambiguous=(isEdu&&isWork)||(isEdu&&isSkill&&section!=="education")||(isWork&&isSkill&&section!=="experience");
-  let target:keyof ParsedCV="unclassified";
-  if(!ambiguous){
-   if(section==="education"&&(isEdu||(!isWork&&!isSkill)))target="education";
-   else if(section==="skills"&&(isSkill||(!isEdu&&!isWork)))target="skills";
-   else if(section==="experience"&&!isEdu)target="experience";
-   else if(isEdu&&!isWork)target="education";
-   else if(isWork&&!isEdu)target="experience";
-   else if(isSkill&&!isEdu&&!isWork)target="skills";
-  }
-  buckets[target].push(cleaned);
+ const skill=/\b(?:CRM|Excel|SQL|Python|JavaScript|JIRA|SAP|Word|PowerPoint|Salesforce|English|Hebrew|Russian|Postman|Selenium|Figma|React|TypeScript)\b|מיומנ|שליטה|שפות|תקשורת בינאישית|עבודת צוות|פתרון בעיות|יכולת ניהול/i;
+ const dateRange=/(?:19|20)\d{2}\s*[-–—\/]\s*(?:(?:19|20)\d{2}|היום|כיום|present|current)/i;
+ const lines=raw.replace(/\r/g,"").split("\n").map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);
+ let section:Section|null=null;
+ for(const source of lines){
+  const line=source.replace(/^[•*▪◦]+\s*/,"").trim();
+  if(line.length<2)continue;
+  const normalized=line.replace(headingPrefix,"").trim();
+  const heading=headings.find(h=>h.pattern.test(normalized));
+  if(heading){section=heading.section;continue}
+  // "Education: B.A..." and similar: classify the content, not the heading.
+  const inline=headings.map(h=>({section:h.section,match:line.match(new RegExp("^"+h.pattern.source.slice(1,-1)+"\\s*[:：]\\s*(.+)$","i"))})).find(x=>x.match);
+  if(inline&&inline.match){section=inline.section;const value=inline.match[1].trim();if(value)buckets[section].push(value);continue}
+  // Names, contact details and generic paragraphs should not be misrepresented as experience.
+  const isEdu=education.test(line),isWork=work.test(line),isSkill=skill.test(line);
+  const dated=dateRange.test(line);
+  let destination:Section="unclassified";
+  if(section==="education"&&(!dated||isEdu||!isWork))destination="education";
+  else if(section==="skills"&&!dated&&!isEdu)destination="skills";
+  else if(section==="experience"&&!isEdu)destination="experience";
+  else if(isEdu&&!isWork)destination="education";
+  else if(dated&&(isWork||section==="experience"))destination="experience";
+  else if(isWork&&!isEdu)destination="experience";
+  else if(isSkill&&!isWork&&!isEdu)destination="skills";
+  buckets[destination].push(line);
  }
- for(const key of ["experience","education","skills","unclassified"] as const)output[key]=buckets[key].join("\n");
- return output;
+ // Preserve each employment entry on its own line, and never invent employers or degrees.
+ return {experience:buckets.experience.join("\n"),education:buckets.education.join("\n"),skills:buckets.skills.join("\n"),unclassified:buckets.unclassified.join("\n")};
 }
 
 export default function CandidateProfile(){
