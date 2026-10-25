@@ -4,7 +4,7 @@ function analyze(text:string){
  const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  const skills=["CRM","Excel","Word","PowerPoint","SQL","Python","JavaScript","שירות לקוחות","מכירות","ניהול צוות","ניהול פרויקטים","תפעול","שירות פרונטלי","הדרכה","גיוס","משאבי אנוש","customer service","sales","project management","leadership","training"];
  const found=skills.filter(x=>text.toLowerCase().includes(x.toLowerCase()));
- const years=[...text.matchAll(/(?:19|20)\d{2}/g)].map(x=>Number(x[0])).filter(x=>x>=1950&&x<=new Date().getFullYear());
+ const years=Array.from(text.matchAll(/(?:19|20)\d{2}/g)).map(x=>Number(x[0])).filter(x=>x>=1950&&x<=new Date().getFullYear());
  const education=lines.filter(x=>/(תואר|בגרות|השכלה|אוניברסיט|מכלל|BA\b|B\.A|MBA|M\.A|degree|bachelor|master|university|college)/i.test(x)).slice(0,5);
  const work=lines.filter(x=>/(ניסיון|עבדתי|עבודה ב|אחראי|מנהלת|מנהל|נציג|רכז|20\d{2}\s*[-–]\s*(?:20\d{2}|היום)|experience|manager|representative|coordinator|specialist)/i.test(x)).slice(0,8);
  const missing:string[]=[];if(!education.length)missing.push("Education / השכלה לא זוהתה");if(!work.length)missing.push("Work experience / ניסיון מקצועי לא זוהה");if(!found.length)missing.push("Skills / מיומנויות לא זוהו");
