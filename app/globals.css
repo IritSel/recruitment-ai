@@ -391,3 +391,38 @@ body :where(button,[role="button"],input,select,textarea,a){-webkit-tap-highligh
 @media(max-width:1000px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-page .profile-cv-panel{position:static!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.shell .profile-page .how-cv-actions>button:last-child{grid-column:auto}}
 @media(max-width:600px){.shell:not(.howSite){padding-inline:15px!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1}.shell .profile-page .profile-field{grid-template-columns:1fr!important}.shell :where(button,.button){min-height:40px}.howRecruiterStats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px!important}.howRecruiterStats>div{min-width:0;padding:10px!important}.howRecruiterStats strong{font-size:25px!important}}
 @media(prefers-reduced-motion:reduce){.shell *{animation:none!important;transition:none!important}}
+
+
+/* Compact desktop typography — explicitly requested across HOW, 25 Oct 2026.
+   Override earlier conflicting !important rules without changing interactions. */
+@media(min-width:701px){
+ body{font-size:12px!important;line-height:1.45!important}
+ .shell,.shell *:not(svg):not(path){letter-spacing:normal}
+ .shell{font-size:12px!important}
+ .shell h1,.shell .profile-page .profile-title,.shell .howRecruiterHeading h1{font-size:23px!important;line-height:1.24!important}
+ .shell h2,.shell .profile-page h2,.shell .profile-page .profile-card h2,.shell .profile-page .profile-cv-panel h2{font-size:16px!important;line-height:1.3!important}
+ .shell h3,.shell .howRecruiterJob h3{font-size:14px!important;line-height:1.3!important}
+ .shell p,.shell li,.shell label,.shell .profile-field-value,.shell .profile-page .profile-field-value{font-size:12px!important;line-height:1.5!important}
+ .shell small,.shell .profile-field-label,.shell .profile-page .profile-field-label{font-size:11px!important}
+ .shell .navlinks,.shell .navlinks a,.shell .navlinks b{font-size:12px!important}
+ .shell .brand{font-size:24px!important}
+ .shell .eyebrow{font-size:10px!important;padding:4px 9px!important}
+ .shell button,.shell .button,.shell [role="button"],.shell .profile-page button,.shell .profile-page .button{font-size:11px!important;line-height:1.3!important;min-height:30px!important;padding:6px 9px!important}
+ .shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.shell select,.shell textarea,.shell .profile-page input:not([type="file"]),.shell .profile-page select,.shell .profile-page textarea{font-size:12px!important;min-height:32px!important;padding:6px 9px!important}
+ .shell .choice,.shell .storyGrid article{padding:14px!important}
+ .shell .profile-page{font-size:12px!important;max-width:1080px!important}
+ .shell .profile-page .choice,.shell .profile-page .profile-card,.shell .profile-page .profile-cv-panel{padding:13px!important}
+ .shell .profile-page .profile-cv-card{padding:10px!important;gap:5px!important}
+ .shell .profile-page .cv-card-title{font-size:12px!important}
+ .shell .profile-page .profile-cv-card p,.shell .profile-page .profile-cv-panel>p{font-size:10px!important}
+ .shell .profile-page .how-cv-actions>button{min-height:31px!important;font-size:11px!important}
+ .shell .profile-page .profile-field{padding:6px 3px!important;gap:8px!important}
+ .shell .profile-page .cv-tools summary{font-size:10px!important}
+ .shell .profile-page .profile-title{margin-bottom:4px!important}
+ .howRecruiterStats strong{font-size:27px!important}
+ .howRecruiterStats span,.howRecruiterStats small{font-size:11px!important}
+ .howRecruiterJobMetrics strong{font-size:20px!important}
+ .howRecruiterJobMetrics span,.howRecruiter .howActionPanel p,.howRecruiterSectionTitle p{font-size:11px!important}
+ .howRecruiterHeading p{font-size:12px!important}
+ .shell table{font-size:11px!important}.shell td,.shell th{padding:8px 10px!important}
+}
