@@ -1,0 +1,41 @@
+"use client";
+import Link from "next/link";
+import {useEffect,useMemo,useState} from "react";
+import {useSiteLanguage} from "./useSiteLanguage";
+type Job={id:string;title:string;city:string;type:string;mode:string;description:string;requirements:string[];tags:string[];demo:boolean};
+const sample:Job[]=[
+{id:"1",title:"נציג/ת שירות לקוחות",city:"באר שבע",type:"משרה מלאה",mode:"משרד",description:"שירות לקוחות טלפוני ודיגיטלי במוקד",requirements:["ניסיון בשירות לקוחות – יתרון","תקשורת בינאישית"],tags:["שירות","CRM"],demo:true},
+{id:"2",title:"נציג/ת שירות ומכירה",city:"באר שבע",type:"משמרות",mode:"משרד",description:"שירות לקוחות ומכירות עם אפשרות להכשרה",requirements:["יכולת שירות ומכירה","נכונות למשמרות"],tags:["מכירות","שירות"],demo:true},
+{id:"3",title:"אחמ״ש/ית מוקד שירות",city:"אשדוד",type:"משרה מלאה",mode:"היברידי",description:"ניהול משמרת ותמיכה בנציגי שירות",requirements:["ניסיון קודם בשירות","ניסיון בהובלת צוות – יתרון"],tags:["ניהול צוות","שירות"],demo:true},
+{id:"4",title:"רכז/ת משאבי אנוש",city:"תל אביב",type:"משרה מלאה",mode:"היברידי",description:"תמיכה בתהליכי גיוס, קליטה ורווחת עובדים",requirements:["כישורי ארגון ותיאום","ניסיון בתחום משאבי אנוש – יתרון"],tags:["משאבי אנוש","גיוס"],demo:true}
+];
+export default function JobsBoard({personal=false}:{personal?:boolean}){
+ const en=useSiteLanguage()==="en";
+ const [qa,setQa]=useState(false);
+ const [q,setQ]=useState("");
+ const [city,setCity]=useState("");
+ const [kind,setKind]=useState("");
+ const [mode,setMode]=useState("");
+ const [profile,setProfile]=useState<{role?:string;city?:string;skills?:string;experience?:string;preferences?:string}|null>(null);
+ useEffect(()=>{try{const context=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");setQa(context?.kind==="demo");const saved=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");const p=Array.isArray(saved)?saved[0]:null;if(p)setProfile(p)}catch{}},[]);
+ const available=qa?sample:[]; // Never expose fictional jobs as real vacancies.
+ const match=(job:Job)=>{const source=[profile?.role,profile?.experience,profile?.skills,profile?.preferences].join(" ").toLowerCase();const words=job.tags.map(x=>x.toLowerCase());return Boolean(source.trim())&&(words.some(x=>source.includes(x))||Boolean(profile?.role&&job.title.includes(profile.role)))};
+ const filtered=useMemo(()=>available.filter(job=>(!q||(job.title+" "+job.description+" "+job.tags.join(" ")).toLowerCase().includes(q.toLowerCase()))&&(!city||job.city===city)&&(!kind||job.type===kind)&&(!mode||job.mode===mode)),[available,q,city,kind,mode]);
+ const recommended=filtered.filter(match),others=filtered.filter(x=>!match(x));
+ function cards(jobs:Job[]){return <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,290px),1fr))",gap:14}}>{jobs.map(j=><article key={j.id} style={{background:"white",border:"1px solid #e7ddf7",borderRadius:14,padding:19,boxShadow:"0 5px 18px #35205e0a"}}><div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"center"}}><strong style={{fontSize:17,color:"#322263"}}>{j.title}</strong><span style={{background:"#f0eafb",color:"#6042a4",padding:"4px 8px",borderRadius:8,fontSize:11,whiteSpace:"nowrap"}}>{en?"QA example":"דוגמה QA"}</span></div><p style={{color:"#6b6386",fontSize:13}}>{j.city} · {j.type} · {j.mode}</p><p style={{lineHeight:1.6,fontSize:13}}>{j.description}</p><p style={{fontSize:12,color:"#6b6386"}}>{j.requirements.join(" · ")}</p>{personal&&match(j)&&<p style={{color:"#14856d",fontSize:12,fontWeight:700}}>{en?"Potential relevance based on sample fields — not verified":"התאמה אפשרית על בסיס נתוני QA בלבד — לא אומתה"}</p>}<Link className="button" href={"/candidate/jobs/"+j.id} style={{marginTop:8}}>{en?"Job details":"לפרטי המשרה"}</Link></article>)}</div>}
+ return <section dir={en?"ltr":"rtl"} style={{padding:"25px 0 65px",maxWidth:1100,margin:"auto"}}>
+ <h1 style={{fontSize:30,marginBottom:7}}>{personal?(en?"Jobs for me":"משרות בשבילי"):(en?"All jobs":"כל המשרות")}</h1>
+ <p style={{color:"#686081",fontSize:14,margin:"0 0 22px"}}>{personal?(en?"Explore potential matches and browse all public jobs.":"כאן יופיעו התאמות אישיות, לצד חיפוש חופשי בכל המשרות."):(en?"Browse open positions without registering.":"אפשר לעיין במשרות הציבוריות ולחפש גם ללא הרשמה.")}</p>
+ <div style={{background:"white",border:"1px solid #e7ddf7",borderRadius:14,padding:14,display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:10,marginBottom:22}}>
+ <input aria-label={en?"Search jobs":"חיפוש משרה"} value={q} onChange={e=>setQ(e.target.value)} placeholder={en?"Role or keyword":"תפקיד או מילת מפתח"}/>
+ <select aria-label={en?"City":"עיר"} value={city} onChange={e=>setCity(e.target.value)}><option value="">{en?"All cities":"כל הערים"}</option>{Array.from(new Set(available.map(j=>j.city))).map(c=><option key={c}>{c}</option>)}</select>
+ <select aria-label={en?"Job type":"היקף משרה"} value={kind} onChange={e=>setKind(e.target.value)}><option value="">{en?"All job types":"כל ההיקפים"}</option>{Array.from(new Set(available.map(j=>j.type))).map(c=><option key={c}>{c}</option>)}</select>
+ <select aria-label={en?"Work mode":"אופן עבודה"} value={mode} onChange={e=>setMode(e.target.value)}><option value="">{en?"All work modes":"כל סוגי העבודה"}</option>{Array.from(new Set(available.map(j=>j.mode))).map(c=><option key={c}>{c}</option>)}</select>
+ </div>
+ {qa&&<p role="status" style={{background:"#fff7e6",border:"1px solid #eed9ac",padding:11,borderRadius:10,fontSize:13}}>{en?"QA: fictional jobs for interface testing only. Applications are not delivered to employers.":"מצב QA: כל המשרות כאן פיקטיביות ונועדו לבדיקת הממשק בלבד. אין הגשת מועמדות למעסיק אמיתי."}</p>}
+ {personal&&<><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,margin:"26px 0 14px"}}><h2 style={{fontSize:20,margin:0}}>{en?"Potential matches":"משרות שעשויות להתאים לך"}</h2><Link href="/candidate/profile" style={{fontSize:13,color:"#6745ad"}}>{en?"Edit profile":"עריכת הפרופיל"}</Link></div>{recommended.length?cards(recommended):<p style={{padding:18,background:"#fff",borderRadius:12,border:"1px solid #e7ddf7"}}>{qa?(en?"No matches from the sample profile. All jobs remain available below.":"לא זוהו התאמות מפרופיל הדוגמה. אפשר לצפות בכל המשרות בהמשך."):(en?"Personal matching will appear when real jobs and approved profile data are connected.":"התאמות אישיות יוצגו לאחר חיבור משרות אמיתיות ונתוני פרופיל מאושרים.")}</p>}</>}
+ <div style={{display:"flex",justifyContent:"space-between",gap:12,alignItems:"center",margin:"27px 0 14px"}}><h2 style={{fontSize:20,margin:0}}>{personal?(en?"Browse other jobs":"עיון במשרות נוספות"):(en?"Browse jobs":"משרות פנויות")}</h2>{personal?<Link href="/jobs" style={{fontSize:13,color:"#6745ad"}}>{en?"Public job board":"ללוח הציבורי"}</Link>:<Link href="/candidate/register" style={{fontSize:13,color:"#6745ad"}}>{en?"Create candidate profile":"יצירת פרופיל מועמד"}</Link>}</div>
+ {(personal?others:filtered).length?cards(personal?others:filtered):<div style={{border:"1px solid #e7ddf7",background:"white",padding:25,borderRadius:14}}><strong>{qa?(en?"No jobs match your filters":"אין משרות התואמות את הסינון"):(en?"There are no published jobs yet":"עדיין אין משרות ציבוריות שפורסמו")}</strong><p style={{color:"#746b8c",fontSize:13}}>{qa?(en?"Try clearing one of the filters.":"אפשר לנסות להסיר חלק מהסינונים."):(en?"This page is ready for future real postings. Demo positions are shown only in QA mode.":"הלוח מוכן להצגת פרסומים אמיתיים בהמשך. משרות הדגמה מוצגות רק במצב QA.")}</p></div>}
+ {!personal&&<p style={{fontSize:12,color:"#746b8c",marginTop:22}}>{en?"Registration will be required to apply, not to browse.":"צפייה במשרות אינה מחייבת הרשמה. הגשת מועמדות מחייבת חשבון ופרופיל מאושר."}</p>}
+ </section>
+}
