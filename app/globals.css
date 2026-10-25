@@ -108,3 +108,18 @@ body button,body input,body select,body textarea{font:inherit}
 @media(max-width:1000px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr}.shell .profile-page .profile-cv-panel{position:static!important}}
 @media(max-width:700px){.shell{padding-inline:16px}.shell .navlinks{gap:10px}.shell .storyGrid,.howRecruiterBottom,.howRecruiterJobGrid{grid-template-columns:1fr}.howRecruiterHeading{flex-direction:column;align-items:flex-start}.shell .profile-page .profile-field{grid-template-columns:1fr}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* Approved desktop type sizes: 15px section headings, 12px body/controls.
+   Desktop only. Keep larger page title as a recognizable hierarchy. */
+@media(min-width:1001px){
+ .shell{font-size:12px}
+ .shell h1,.shell .profile-page .profile-title,.shell .howRecruiterHeading h1{font-size:20px}
+ .shell h2,.shell .profile-page .profile-card h2,.shell .profile-page .profile-cv-panel h2,.shell .howRecruiterSectionTitle h2,.shell .howRecruiter .howActionPanel h2{font-size:15px}
+ .shell h3,.shell .howRecruiterJob h3{font-size:15px}
+ .shell p,.shell li,.shell label,.shell .profile-page .profile-field-value,.shell .profile-page .profile-cv-card p{font-size:12px}
+ .shell :is(button,.button,[role="button"]),.shell .profile-page :is(button,.button){font-size:12px}
+ .shell input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),.shell select,.shell textarea{font-size:12px}
+ .shell .navlinks,.shell .profile-page .cv-card-title{font-size:12px}
+ .shell .howRecruiterStats strong{font-size:20px}
+ .shell .howRecruiterJobMetrics strong{font-size:18px}
+}
