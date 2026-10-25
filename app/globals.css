@@ -297,3 +297,30 @@ body{font-family:Arial,"Noto Sans Hebrew","Segoe UI",sans-serif}
 .howSite .howSteps{background:linear-gradient(#FAF9FD,#F1ECFA)}
 @media(max-width:950px){.shell .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-cv-panel{position:static!important}}
 @media(max-width:650px){.shell .profile-field{grid-template-columns:1fr;gap:4px}.shell .profile-card{padding:19px!important}.shell .profile-cv-panel{padding:19px!important}.shell .profile-card>div:first-child{flex-wrap:wrap}}
+
+/* QA candidate profile compact desktop density — overrides previous site-wide !important rules. */
+@media(min-width:951px){
+ .shell .profile-page{max-width:1050px!important;padding-top:18px!important;padding-bottom:40px!important}
+ .shell .profile-page .profile-title{font-size:27px!important;line-height:1.25!important;margin:0 0 5px!important}
+ .shell .profile-page>p{font-size:12px!important;margin:0 0 14px!important;line-height:1.5!important}
+ .shell .profile-page .profile-selector{padding:11px 14px!important;margin-bottom:14px!important}
+ .shell .profile-page .profile-selector select{min-height:38px!important;padding:7px 11px!important}
+ .shell .profile-page .qa-profile-layout{gap:14px!important}
+ .shell .profile-page .profile-card{padding:15px 17px!important}
+ .shell .profile-page .profile-card>div:first-child{margin-bottom:8px!important}
+ .shell .profile-page .profile-card>div:first-child h2{font-size:16px!important;line-height:1.35!important}
+ .shell .profile-page .profile-field{padding:8px 4px!important;gap:9px!important}
+ .shell .profile-page .profile-field-label{font-size:12px!important;line-height:1.5!important}
+ .shell .profile-page .profile-field-value{font-size:13px!important;line-height:1.55!important}
+ .shell .profile-page .profile-card>div:first-child button{min-height:32px!important;padding:6px 11px!important;font-size:12px!important}
+ .shell .profile-page .profile-cv-panel{padding:15px!important}
+ .shell .profile-page .profile-cv-panel h2{font-size:17px!important;line-height:1.35!important}
+ .shell .profile-page .profile-cv-panel>p{font-size:12px!important;margin-bottom:12px!important}
+ .shell .profile-page .profile-cv-card{padding:10px 11px!important;margin-bottom:9px!important}
+ .shell .profile-page .profile-cv-card .cv-card-title{font-size:13px!important;line-height:1.45!important}
+ .shell .profile-page .profile-cv-card p{font-size:11px!important;line-height:1.5!important;margin-bottom:8px!important}
+ .shell .profile-page .profile-cv-card button:not(.button){font-size:11px!important;min-height:32px!important;padding:6px 9px!important}
+ .shell .profile-page .profile-cv-card .button,.shell .profile-page .cv-add-button{font-size:12px!important;min-height:34px!important;padding:7px 11px!important}
+ .shell .profile-page .cv-tools{padding:7px 9px!important}
+ .shell .profile-page .cv-tools summary{font-size:11px!important;padding:3px 0!important}
+}
