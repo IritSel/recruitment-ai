@@ -9,7 +9,7 @@ export default function Home(){
    <Link href="/" className="howLogo" aria-label="HOW home"><strong>HOW<span>?</span></strong><i>〃</i><small>Hired of Waiting?</small></Link>
    <nav aria-label={en?"Main navigation":"ניווט ראשי"}>
     <a href="#how-it-works">{en?"How it works":"איך זה עובד"}</a>
-    <Link href="/candidate/register">{en?"For candidates":"למחפשי עבודה"}</Link>
+    <Link href="/jobs">{en?"All jobs":"כל המשרות"}</Link><Link href="/candidate/register">{en?"For candidates":"למחפשי עבודה"}</Link>
     <Link href="/recruiter/register">{en?"For employers":"למעסיקים"}</Link>
     <Link href="/about">{en?"About":"אודות"}</Link>
    </nav>
