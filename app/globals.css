@@ -294,3 +294,29 @@ body{font-family:Arial,"Noto Sans Hebrew","Segoe UI",sans-serif}
 .shell .profile-page .cv-tools summary{font-size:11px!important}
 @media(max-width:950px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-page .profile-cv-panel{position:static!important}}
 @media(max-width:600px){.shell .profile-page .profile-title{font-size:24px!important}.shell .profile-page .choice{padding:13px!important}.shell .profile-page .profile-field{grid-template-columns:1fr!important;gap:4px!important}}
+
+
+/* Profile QA correction: one UI font, less visual bulk, no colliding CV actions */
+:root{--how-ui-font:Arial,"Segoe UI",sans-serif}
+body,.shell,.howSite,.shell button,.shell input,.shell select,.shell textarea,.shell label{font-family:var(--how-ui-font)!important}
+.shell .profile-page,.shell .profile-page *{font-family:var(--how-ui-font)!important}
+.shell .profile-page{max-width:1120px!important;font-size:14px!important}
+.shell .profile-page .qa-profile-layout{grid-template-columns:minmax(0,1.65fr) minmax(340px,1fr)!important;gap:16px!important;align-items:start}
+.shell .profile-page .profile-title{font-size:27px!important}
+.shell .profile-page .choice{padding:16px!important}
+.shell .profile-page .profile-card>div:first-child h2,.shell .profile-page .profile-cv-panel h2{font-size:17px!important}
+.shell .profile-page .profile-field-value{font-size:14px!important}
+.shell .profile-page .profile-cv-card{min-width:0;overflow-wrap:anywhere;display:grid;gap:7px}
+.shell .profile-page .profile-cv-card p{margin:0 0 5px!important}
+.shell .profile-page .how-cv-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;align-items:stretch;min-width:0}
+.shell .profile-page .how-cv-actions>button{width:100%!important;max-width:100%!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere;text-align:center;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1;background:#F3EEFC!important;border-color:#D9CCF2!important;color:#51378B!important}
+.shell .profile-page .profile-cv-card>button:not(.button){display:block;width:100%;max-width:100%;white-space:normal!important;overflow-wrap:anywhere}
+.shell .profile-page .cv-tools{width:100%;min-width:0}
+.shell .profile-page .cv-tools>div{min-width:0}
+.shell .profile-page .cv-tools button{white-space:normal!important;overflow-wrap:anywhere;max-width:100%}
+.shell .profile-page button,.shell .profile-page .button{font-size:13px!important;min-height:38px!important;line-height:1.4!important;padding:8px 11px!important}
+.shell .profile-page .profile-cv-card .button{background:#6240A3!important;color:white!important}
+.shell .profile-page .profile-cv-card .how-cv-actions>button:nth-child(2){background:#fff!important;border:1px solid #D7C4FA!important;color:#51378B!important;box-shadow:none!important}
+@media(max-width:950px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-page .profile-cv-panel{position:static!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.shell .profile-page .how-cv-actions>button:last-child{grid-column:auto}}
+@media(max-width:490px){.shell .profile-page .how-cv-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1}}
