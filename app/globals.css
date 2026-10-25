@@ -320,3 +320,74 @@ body,.shell,.howSite,.shell button,.shell input,.shell select,.shell textarea,.s
 .shell .profile-page .profile-cv-card .how-cv-actions>button:nth-child(2){background:#fff!important;border:1px solid #D7C4FA!important;color:#51378B!important;box-shadow:none!important}
 @media(max-width:950px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-page .profile-cv-panel{position:static!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.shell .profile-page .how-cv-actions>button:last-child{grid-column:auto}}
 @media(max-width:490px){.shell .profile-page .how-cv-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1}}
+
+
+/* === HOW UI AUDIT | unified browser typography & actions | 2026-10-25 ===
+   Applied after legacy rules to give every screen one clear visual baseline. */
+:root{--how-font:Arial,"Segoe UI",sans-serif;--how-ink:#30226A;--how-action:#6240A3;--how-outline:#D8C9F3;--how-surface:#fff;--how-page:#FAF9FD}
+html{font-family:var(--how-font);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:var(--how-font)!important;font-size:14px;line-height:1.55}
+body :where(button,input,select,textarea,option){font-family:inherit!important;letter-spacing:normal}
+body :where(button,[role="button"],input,select,textarea,a){-webkit-tap-highlight-color:transparent}
+.shell,.howSite,.shell *:not(.howLogo):not(.howLogo *),.howSite *:not(.howLogo):not(.howLogo *){font-family:var(--how-font)!important}
+.shell{font-size:14px;line-height:1.55}
+.shell :where(p,li,label){font-size:14px;line-height:1.6}
+.shell :where(h1,h2,h3){line-height:1.3}
+.shell h1{font-size:clamp(25px,2.2vw,32px)!important}
+.shell h2{font-size:clamp(18px,1.7vw,23px)!important}
+.shell h3{font-size:clamp(16px,1.3vw,19px)!important}
+.shell .choice,.shell .storyGrid article{padding:18px!important}
+.shell :where(button,.button,[role="button"]){
+ box-sizing:border-box;max-width:100%;min-width:0;min-height:36px;
+ font-size:13px!important;font-weight:650;line-height:1.4;
+ white-space:normal;overflow-wrap:anywhere;text-align:center;
+ border-radius:9px!important;vertical-align:middle;
+}
+.shell :where(button,.button,[role="button"]):not([role="switch"]){padding:8px 12px!important}
+.shell .button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px!important}
+.shell :where(button,[role="button"]):not(.button):not([role="switch"]):not([aria-pressed="true"]){
+ border:1px solid var(--how-outline);background:#FBF9FF;color:#51378B;box-shadow:none;
+}
+.shell :where(button,[role="button"]):not(.button):not([role="switch"]):hover:not(:disabled){background:#F2ECFC}
+.shell button:disabled{opacity:.55;cursor:not-allowed}
+.shell :where(input:not([type="checkbox"]):not([type="radio"]),textarea,select){
+ box-sizing:border-box;max-width:100%;font-size:13px!important;min-height:38px!important;
+ padding:8px 11px!important;border-radius:9px!important;
+}
+.shell :where(button,a,input,textarea,select):focus-visible{outline:2px solid #8466C0!important;outline-offset:2px}
+.shell .nav{min-height:68px!important}.shell .navlinks{font-size:13px!important;gap:16px!important}
+.shell .brand{font-size:26px!important}
+.shell table{font-size:13px}.shell :where(th,td){padding:10px 12px!important}
+.shell .eyebrow{font-size:11px!important;padding:5px 10px!important}
+/* Profile explicitly constrained to prevent button compression/collision */
+.shell .profile-page{max-width:1080px!important;margin-inline:auto;font-size:13px!important}
+.shell .profile-page .profile-title{font-size:26px!important}
+.shell .profile-page .qa-profile-layout{display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(345px,.96fr)!important;gap:14px!important;align-items:start}
+.shell .profile-page .profile-card,.shell .profile-page .profile-cv-panel{padding:15px!important}
+.shell .profile-page .profile-field{grid-template-columns:minmax(100px,30%) minmax(0,1fr);padding:8px 4px!important}
+.shell .profile-page .profile-field-label{font-size:12px!important}.shell .profile-page .profile-field-value{font-size:13px!important}
+.shell .profile-page .profile-cv-card{display:flex!important;flex-direction:column;gap:7px;min-width:0;overflow:visible}
+.shell .profile-page .profile-cv-card>p{margin:0!important}
+.shell .profile-page .how-cv-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;width:100%}
+.shell .profile-page .how-cv-actions>button{width:100%!important;min-width:0!important;max-width:none!important;min-height:36px!important;padding:7px 8px!important;white-space:normal!important;margin:0!important}
+.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1}
+.shell .profile-page .profile-cv-card>button:not(.button){display:flex;align-items:center;justify-content:center;width:100%!important;min-height:36px!important;margin:0!important}
+.shell .profile-page .cv-tools{width:100%;max-width:100%;margin:0}
+.shell .profile-page .cv-tools summary{min-height:34px;line-height:1.4;display:flex;align-items:center;white-space:normal;overflow-wrap:anywhere}
+.shell .profile-page :where(.cv-add-options,.cv-quick-upload,.cv-manual-add){min-width:0;max-width:100%;overflow-wrap:anywhere}
+.shell .profile-page :where(.cv-add-options,.cv-quick-upload,.cv-manual-add) button{white-space:normal!important}
+.shell .profile-page :where(button,.button){font-size:12px!important;min-height:36px!important;padding:7px 9px!important;line-height:1.4!important}
+.shell .profile-page .profile-cv-card .button{background:#6240A3!important;color:#fff!important}
+.shell .profile-page .profile-cv-card .how-cv-actions>button:nth-child(2){background:white!important;color:#51378B!important;border:1px solid #D7C4FA!important}
+.shell .profile-page .profile-cv-card .how-cv-actions>button:nth-child(3){background:#F3EEFC!important;color:#51378B!important;border:1px solid #D7C4FA!important}
+.howRecruiterContent{padding:25px 0 54px!important}
+.howRecruiterHeading h1{font-size:clamp(26px,2.4vw,33px)!important}
+.howRecruiterStats>div{min-height:110px!important;padding:16px 18px!important}
+.howRecruiterStats strong{font-size:32px!important}
+.howRecruiterJob{min-height:0!important;padding:18px!important}
+.howRecruiterJobMetrics strong{font-size:22px!important}
+.howRecruiter .howActionPanel{min-height:110px!important;padding:18px!important}
+/* Mobile: no horizontal crop, never force columns that cannot fit */
+@media(max-width:1000px){.shell .profile-page .qa-profile-layout{grid-template-columns:1fr!important}.shell .profile-page .profile-cv-panel{position:static!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.shell .profile-page .how-cv-actions>button:last-child{grid-column:auto}}
+@media(max-width:600px){.shell:not(.howSite){padding-inline:15px!important}.shell .profile-page .how-cv-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}.shell .profile-page .how-cv-actions>button:last-child{grid-column:1/-1}.shell .profile-page .profile-field{grid-template-columns:1fr!important}.shell :where(button,.button){min-height:40px}.howRecruiterStats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px!important}.howRecruiterStats>div{min-width:0;padding:10px!important}.howRecruiterStats strong{font-size:25px!important}}
+@media(prefers-reduced-motion:reduce){.shell *{animation:none!important;transition:none!important}}
