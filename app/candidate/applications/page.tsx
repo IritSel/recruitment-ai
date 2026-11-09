@@ -2,7 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useSiteLanguage} from "../../components/useSiteLanguage";
-type QaAction={id:string;candidateId:string;sourceJobId:string;kind:"question"|"meeting";message:string;date?:string;time?:string;mode?:string;status:"pending"|"answered"|"accepted"|"declined";response?:string;createdAt:string};
+type QaAction={id:string;candidateId:string;sourceJobId:string;kind:"question"|"meeting";message:string;date?:string;time?:string;mode?:string;slots?:{date:string;time:string}[];selectedSlot?:{date:string;time:string};status:"pending"|"answered"|"accepted"|"declined";response?:string;createdAt:string};
 type Submission={id:string;jobId:string;title:string;company:string;status:string;submittedAt:string};
 type RecruiterApplication={candidateId:string;jobId:string;sourceJobId?:string;status:string;submittedAt?:string;candidateName?:string};
 const key="how-qa-candidate-applications-v1";
@@ -47,13 +47,13 @@ export default function Applications(){
   return()=>{window.removeEventListener("focus",refresh);window.removeEventListener("storage",refresh)}
  },[]);
 
- function respond(action:QaAction,status:"answered"|"accepted"|"declined"){
+ function respond(action:QaAction,status:"answered"|"accepted"|"declined",slot?:{date:string;time:string}){
   const value=(answers[action.id]||"").trim();
   if(status==="answered"&&!value)return;
   try{
    const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
    const list:QaAction[]=Array.isArray(raw)?raw:[];
-   const next=list.map(x=>x.id===action.id?{...x,status,response:status==="answered"?value:status==="declined"?"המועמדת דחתה את ההזמנה":"המועמדת אישרה את ההזמנה"}:x);
+   const next=list.map(x=>x.id===action.id?{...x,status,selectedSlot:status==="accepted"?slot:undefined,response:status==="answered"?value:status==="declined"?"המועמדת ביקשה הצעת מועדים נוספים":"המועמדת בחרה מועד ואישרה את הראיון"}:x);
    localStorage.setItem(actionKey,JSON.stringify(next));
    setActions(next);
   }catch{}
@@ -67,12 +67,12 @@ export default function Applications(){
   const upcoming=new Date(now.getTime()+7*86400000).toISOString().slice(0,10);
   const examples:QaAction[]=[
    {id:"demo-question-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"question",message:"נשמח לשמוע על ניסיון בעבודה עם לקוחות ועל מערכות השירות שבהן השתמשת.",status:"pending",createdAt:now.toISOString()},
-   {id:"demo-meeting-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"meeting",message:"נשמח להזמינך לשיחת היכרות קצרה. אנא אשרי את המועד או דחי את ההזמנה.",date:upcoming,time:"10:00",mode:"video",status:"pending",createdAt:now.toISOString()}
+   {id:"demo-meeting-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"meeting",message:"נשמח להזמינך לשיחת היכרות קצרה. אנא אשרי את המועד או דחי את ההזמנה.",date:upcoming,time:"10:00",slots:[{date:upcoming,time:"10:00"},{date:upcoming,time:"14:00"},{date:new Date(now.getTime()+8*86400000).toISOString().slice(0,10),time:"11:30"}],mode:"video",status:"pending",createdAt:now.toISOString()}
   ];
   try{
    const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
    const list:QaAction[]=Array.isArray(raw)?raw:[];
-   const next=[...list,...examples.filter(x=>!list.some(a=>a.id===x.id))];
+   const next=[...list.filter(x=>!x.id.startsWith("demo-meeting-"+candidateId+"-"+first.jobId)),...examples.filter(x=>x.kind==="meeting"||!list.some(a=>a.id===x.id))];
    localStorage.setItem(actionKey,JSON.stringify(next));setActions(next);
   }catch{}
  }
@@ -90,14 +90,23 @@ export default function Applications(){
  {["הוגשה","בדיקה","בתהליך","החלטה"].map((name,i)=><div key={name} style={{display:"grid",gap:5}}><div style={{height:5,background:i<status.step?"#6d50ad":"#e8e2f3",borderRadius:8}}/><span style={{fontSize:11,color:i<status.step?"#503487":"#9087a4"}}>{name}</span></div>)}
  </div>
  <p style={{fontSize:13,margin:0,color:"#665c80"}}>{status.detail}</p>
- {jobActions.length>0&&<section style={{border:"1px solid #dfd3f2",borderRadius:12,padding:14,background:"#fcfbff",display:"grid",gap:11}}>
- <strong style={{fontSize:15,color:"#422b79"}}>הודעות ופעולות מהמגייסת {jobActions.some(x=>x.status==="pending")?"· נדרשת פעולה":""}</strong>
- {jobActions.map(action=><div key={action.id} style={{border:"1px solid #ebe3f5",borderRadius:10,padding:12,display:"grid",gap:9,background:"white"}}>
- <div style={{display:"flex",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}><strong>{action.kind==="question"?"שאלה מהמגייסת":"הזמנה לראיון"}</strong><span style={{fontSize:12,color:"#695a82"}}>{action.status==="pending"?"ממתין לתגובתך":action.status==="answered"?"נשלחה תשובה":action.status==="accepted"?"ההזמנה אושרה":"ההזמנה נדחתה"}</span></div>
- <p style={{margin:0,fontSize:13,lineHeight:1.6}}>{action.message}</p>
- {action.kind==="meeting"&&<p style={{margin:0,fontSize:13,color:"#4c387c"}}>מועד מוצע: {action.date} בשעה {action.time} · {action.mode==="video"?"שיחת וידאו":action.mode==="phone"?"טלפוני":"פגישה פרונטלית"}</p>}
- {action.status==="pending"&&(action.kind==="question"?<><textarea aria-label="תשובה למגייסת" rows={3} value={answers[action.id]||""} onChange={e=>setAnswers(p=>({...p,[action.id]:e.target.value}))} placeholder="כתבי כאן תשובה לשאלת המגייסת" style={{border:"1px solid #d9cceb",borderRadius:9,padding:11,font:"inherit",width:"100%"}}/><button type="button" disabled={!answers[action.id]?.trim()} className="button" style={{justifySelf:"start"}} onClick={()=>respond(action,"answered")}>שליחת תשובה למגייסת</button></>:<div style={{display:"flex",flexWrap:"wrap",gap:8}}><button type="button" className="button" onClick={()=>respond(action,"accepted")}>אישור הראיון</button><button type="button" onClick={()=>respond(action,"declined")} style={{padding:"8px 12px",border:"1px solid #d7cbe9",background:"white",borderRadius:9}}>המועד לא מתאים</button></div>)}
- {action.status!=="pending"&&action.response&&<p style={{margin:0,color:"#26725d",fontSize:12}}>התגובה שנשלחה: {action.response}</p>}
+ {jobActions.length>0&&<section style={{borderTop:"1px solid #ece5f6",paddingTop:10,display:"grid",gap:8}}>
+ <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
+ <strong style={{fontSize:13,color:"#493479"}}>עדכונים מהמגייסת</strong>
+ {jobActions.some(x=>x.status==="pending")&&<span style={{fontSize:11,background:"#f0eafb",borderRadius:7,padding:"5px 8px",color:"#5a3d91"}}>{jobActions.filter(x=>x.status==="pending").length} פעולות ממתינות</span>}
+ </div>
+ {jobActions.map(action=><div key={action.id} style={{border:"1px solid #e9e0f3",borderRadius:10,padding:"11px 12px",background:"#fff",display:"grid",gap:8}}>
+ <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"center",flexWrap:"wrap"}}><strong style={{fontSize:13}}>{action.kind==="question"?"שאלה מהמגייסת":"בחירת מועד לראיון"}</strong><span style={{fontSize:11,color:"#685d82"}}>{action.status==="pending"?"ממתין לתגובתך":action.status==="answered"?"נשלחה תשובה":action.status==="accepted"?"המועד אושר":"ממתינים להצעה חלופית"}</span></div>
+ <p style={{margin:0,fontSize:12,lineHeight:1.55}}>{action.message}</p>
+ {action.kind==="question"?(action.status==="pending"?<details style={{borderRadius:8,background:"#faf8ff",padding:"7px 9px"}}><summary style={{cursor:"pointer",fontWeight:650,fontSize:12,color:"#5d4297"}}>כתיבת תשובה</summary><div style={{display:"grid",gap:8,paddingTop:8}}><textarea aria-label="תשובה למגייסת" rows={2} value={answers[action.id]||""} onChange={e=>setAnswers(p=>({...p,[action.id]:e.target.value}))} placeholder="כתבי כאן תשובה למגייסת" style={{border:"1px solid #d9cceb",borderRadius:8,padding:8,font:"inherit",width:"100%",fontSize:12}}/><button type="button" disabled={!answers[action.id]?.trim()} onClick={()=>respond(action,"answered")} style={{justifySelf:"start",padding:"7px 12px",border:0,background:"#6944a7",color:"white",borderRadius:8,cursor:"pointer",fontSize:12}}>שליחת תשובה</button></div></details>:<p style={{margin:0,color:"#26725d",fontSize:12}}>התשובה נשלחה: {action.response||""}</p>):<>
+ <span style={{fontSize:12,color:"#665881"}}>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · בחרי את המועד המתאים לך</span>
+ {action.status==="pending"?<>
+ <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:7}}>
+ {(action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[]).map((slot,i)=><button type="button" key={slot.date+"-"+slot.time+"-"+i} onClick={()=>respond(action,"accepted",slot)} style={{border:"1px solid #d8c8eb",borderRadius:9,padding:"10px 8px",background:"#fbf9ff",color:"#442e79",cursor:"pointer",fontSize:12,fontWeight:650,textAlign:"center"}}>{new Date(slot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"short",day:"numeric",month:"short"})} · {slot.time}<span style={{display:"block",fontSize:10,fontWeight:400,marginTop:4}}>בחירה ואישור</span></button>)}
+ </div>
+ <button type="button" onClick={()=>respond(action,"declined")} style={{justifySelf:"start",border:0,background:"transparent",color:"#6c5198",textDecoration:"underline",fontSize:11,cursor:"pointer",padding:2}}>אף אחד מהמועדים לא מתאים</button>
+ </>:<p style={{fontSize:12,color:action.status==="accepted"?"#26725d":"#6b607d",margin:0}}>{action.status==="accepted"?(action.selectedSlot?"אישרת ראיון לתאריך "+new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL")+" בשעה "+action.selectedSlot.time:"הראיון אושר"):"נשלחה בקשה למועדים חלופיים"}</p>}
+ </>}
  </div>)}
  </section>}
  <div><Link className="button" href={"/candidate/jobs/"+item.jobId}>לפרטי המשרה</Link></div>
