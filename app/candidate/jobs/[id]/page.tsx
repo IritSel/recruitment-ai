@@ -20,6 +20,7 @@ export default function JobDetails(){
   const profiles=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");
   const candidate=Array.isArray(profiles)?profiles[0]:null;
   const candidateId=candidate?.id||"qa-noa-levi";
+  const selectedCv=Array.isArray(candidate?.cv)?candidate.cv.find((x:{primary?:boolean})=>x.primary)||candidate.cv[0]:null;
   const now=new Date().toISOString();
   if(!applications.some((x:Submission)=>x.jobId===id)){
    applications.unshift({id:"qa-"+id,jobId:id,title:job.title,company:"חברת דמו א׳",status:"review",submittedAt:now});
@@ -28,7 +29,7 @@ export default function JobDetails(){
   const stored=JSON.parse(localStorage.getItem(recruiterKey)||"[]");
   const recruiter=Array.isArray(stored)?stored:[];
   if(!recruiter.some((x:{candidateId?:string;sourceJobId?:string})=>x.candidateId===candidateId&&x.sourceJobId===id)){
-   recruiter.unshift({candidateId,jobId:recruiterJobIds[id],sourceJobId:id,status:"review",submittedAt:now,origin:"candidate-qa",candidateName:candidate?.name||"מועמדת QA"});
+   recruiter.unshift({candidateId,jobId:recruiterJobIds[id],sourceJobId:id,status:"review",submittedAt:now,origin:"candidate-qa",candidateName:candidate?.name||"מועמדת QA",candidateRole:candidate?.role||"",candidateCity:candidate?.city||"",candidateExperience:candidate?.experience||"",candidateSkills:candidate?.skills||"",cvTitle:selectedCv?.title||"",cvContent:selectedCv?.content||"",cvFileName:selectedCv?.fileName||""});
    localStorage.setItem(recruiterKey,JSON.stringify(recruiter));
   }
   setSent(true);
