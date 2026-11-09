@@ -20,7 +20,7 @@ export default function ReviewCandidates(){
  const [jobFilter,setJobFilter]=useState("all");
  const [message,setMessage]=useState("");
  const [qaActions,setQaActions]=useState<QaAction[]>([]);
- const [actionDraft,setActionDraft]=useState<Record<string,{kind:"question"|"meeting";message:string;date:string;time:string;mode:string;otherDate:string;otherTime:string;thirdDate:string;thirdTime:string}>>({});
+ const [actionDraft,setActionDraft]=useState<Record<string,{kind:"question"|"meeting";message:string;date:string;time:string;mode:string;otherDate?:string;otherTime?:string;thirdDate?:string;thirdTime?:string}>>({});
  const [feedback,setFeedback]=useState<Record<string,{decision:string;reason:string}>>({});
  const [clarifications,setClarifications]=useState<Record<string,string>>({});
  useEffect(()=>{const refresh=()=>{try{const a=JSON.parse(localStorage.getItem("how-qa-applications")||"[]");setApplications(Array.isArray(a)?a:[]);const j=JSON.parse(localStorage.getItem("how-qa-published-jobs")||"[]");setJobs([...demoJobs,...(Array.isArray(j)?j:[])]);const n=JSON.parse(localStorage.getItem("how-qa-review-notes")||"{}");setNotes(n&&typeof n==="object"&&!Array.isArray(n)?n:{});const actions=JSON.parse(localStorage.getItem(actionStore)||"[]");setQaActions(Array.isArray(actions)?actions:[]);const f=JSON.parse(localStorage.getItem("how-qa-screening-feedback")||"{}");setFeedback(f&&typeof f==="object"&&!Array.isArray(f)?f:{})}catch{}};refresh();window.addEventListener("focus",refresh);window.addEventListener("storage",refresh);return()=>{window.removeEventListener("focus",refresh);window.removeEventListener("storage",refresh)}},[]);
