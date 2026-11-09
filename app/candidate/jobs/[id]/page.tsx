@@ -18,7 +18,7 @@ export default function JobDetails(){
   const raw=JSON.parse(localStorage.getItem(key)||"[]");
   const applications=Array.isArray(raw)?raw:[] as Submission[];
   const profiles=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");
-  const candidate=Array.isArray(profiles)?profiles[0]:null;
+  const candidate=Array.isArray(profiles)?profiles.find((x:{id:string})=>x.id===localStorage.getItem("how-qa-selected-candidate-id"))||profiles[0]:null;
   const candidateId=candidate?.id||"qa-noa-levi";
   const selectedCv=Array.isArray(candidate?.cv)?candidate.cv.find((x:{primary?:boolean})=>x.primary)||candidate.cv[0]:null;
   const now=new Date().toISOString();
