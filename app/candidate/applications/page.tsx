@@ -19,7 +19,7 @@ function load(){
  const raw=JSON.parse(localStorage.getItem(key)||"[]");
  const items:Submission[]=Array.isArray(raw)?raw:[];
  const p=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");
- const candidate=Array.isArray(p)?p[0]:null;
+ const candidate=Array.isArray(p)?p.find((x:{id:string})=>x.id===localStorage.getItem("how-qa-selected-candidate-id"))||p[0]:null;
  const candidateId=candidate?.id||"qa-noa-levi";
  const rRaw=JSON.parse(localStorage.getItem(recruiterKey)||"[]");
  const recruiter:RecruiterApplication[]=Array.isArray(rRaw)?rRaw:[];
