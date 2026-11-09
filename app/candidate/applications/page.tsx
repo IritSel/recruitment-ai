@@ -41,6 +41,7 @@ export default function Applications(){
  const [qa,setQa]=useState(false);
  const [actions,setActions]=useState<QaAction[]>([]);
  const [answers,setAnswers]=useState<Record<string,string>>({});
+ const [selectedSlots,setSelectedSlots]=useState<Record<string,number>>({});
  useEffect(()=>{
   const refresh=()=>{try{const context=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");const active=context?.kind==="demo"&&context?.role==="candidate";setQa(active);setItems(active?load():[]);const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");setActions(active&&Array.isArray(raw)?raw:[])}catch{setItems([])}};
   refresh();window.addEventListener("focus",refresh);window.addEventListener("storage",refresh);
@@ -50,6 +51,7 @@ export default function Applications(){
  function respond(action:QaAction,status:"answered"|"accepted"|"declined",slot?:{date:string;time:string}){
   const value=(answers[action.id]||"").trim();
   if(status==="answered"&&!value)return;
+  if(status==="accepted"&&!slot)return;
   try{
    const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
    const list:QaAction[]=Array.isArray(raw)?raw:[];
@@ -102,10 +104,11 @@ export default function Applications(){
  <span style={{fontSize:12,color:"#665881"}}>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · בחרי את המועד המתאים לך</span>
  {action.status==="pending"?<>
  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:7}}>
- {(action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[]).map((slot,i)=><button type="button" key={slot.date+"-"+slot.time+"-"+i} onClick={()=>respond(action,"accepted",slot)} style={{border:"1px solid #d8c8eb",borderRadius:9,padding:"10px 8px",background:"#fbf9ff",color:"#442e79",cursor:"pointer",fontSize:12,fontWeight:650,textAlign:"center"}}>{new Date(slot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"short",day:"numeric",month:"short"})} · {slot.time}<span style={{display:"block",fontSize:10,fontWeight:400,marginTop:4}}>בחירה ואישור</span></button>)}
+ {(action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[]).map((slot,i)=><button type="button" key={slot.date+"-"+slot.time+"-"+i} onClick={()=>setSelectedSlots(p=>({...p,[action.id]:i}))} aria-pressed={selectedSlots[action.id]===i} style={{border:selectedSlots[action.id]===i?"2px solid #704cac":"1px solid #d8c8eb",borderRadius:9,padding:"10px 8px",background:selectedSlots[action.id]===i?"#eee8fa":"#fbf9ff",color:"#442e79",cursor:"pointer",fontSize:12,fontWeight:650,textAlign:"center"}}>{new Date(slot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"short",day:"numeric",month:"short"})} · {slot.time}<span style={{display:"block",fontSize:10,fontWeight:400,marginTop:4}}>{selectedSlots[action.id]===i?"נבחר ✓":"בחירת מועד"}</span></button>)}
  </div>
+ <button type="button" className="button" disabled={selectedSlots[action.id]===undefined} onClick={()=>{const all=action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[];respond(action,"accepted",all[selectedSlots[action.id]])}} style={{justifySelf:"start",fontSize:12,padding:"8px 14px"}}>אישור ושליחת המועד למגייסת</button>
  <button type="button" onClick={()=>respond(action,"declined")} style={{justifySelf:"start",border:0,background:"transparent",color:"#6c5198",textDecoration:"underline",fontSize:11,cursor:"pointer",padding:2}}>אף אחד מהמועדים לא מתאים</button>
- </>:<p style={{fontSize:12,color:action.status==="accepted"?"#26725d":"#6b607d",margin:0}}>{action.status==="accepted"?(action.selectedSlot?"אישרת ראיון לתאריך "+new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL")+" בשעה "+action.selectedSlot.time:"הראיון אושר"):"נשלחה בקשה למועדים חלופיים"}</p>}
+ </>:<p style={{fontSize:12,color:action.status==="accepted"?"#26725d":"#6b607d",margin:0}}>{action.status==="accepted"?(action.selectedSlot?"אישרת ראיון לתאריך "+new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL")+" בשעה "+action.selectedSlot.time:"הראיון אושר"):"נשלחה בקשה למועדים חלופיים. המגייסת תצטרך לשלוח הזמנה חדשה."}</p>}
  </>}
  </div>)}
  </section>}
