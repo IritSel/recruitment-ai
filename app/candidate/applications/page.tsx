@@ -35,6 +35,29 @@ function load(){
  if(updated)localStorage.setItem(recruiterKey,JSON.stringify(recruiter));
  return items.map(a=>({...a,status:recruiter.find(x=>x.candidateId===candidateId&&x.sourceJobId===a.jobId)?.status||"review"}));
 }
+
+function loadQaActions(items:Submission[]):QaAction[]{
+ const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
+ const saved:QaAction[]=Array.isArray(raw)?raw:[];
+ const first=items[0];
+ if(!first)return saved;
+ const profiles=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");
+ const selected=Array.isArray(profiles)?profiles.find((x:{id:string})=>x.id===localStorage.getItem("how-qa-selected-candidate-id"))||profiles[0]:null;
+ const candidateId=selected?.id||"qa-noa-levi";
+ // Only seed sample actions when no recruiter action already exists for this application.
+ if(saved.some(a=>a.candidateId===candidateId&&a.sourceJobId===first.jobId))return saved;
+   const now=new Date();
+  const upcoming=new Date(now.getTime()+7*86400000).toISOString().slice(0,10);
+  const examples:QaAction[]=[
+   {id:"demo-question-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"question",message:"נשמח לשמוע על ניסיון בעבודה עם לקוחות ועל מערכות השירות שבהן השתמשת.",status:"pending",createdAt:now.toISOString()},
+   {id:"demo-meeting-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"meeting",message:"נשמח להזמינך לשיחת היכרות קצרה. אנא אשרי את המועד או דחי את ההזמנה.",date:upcoming,time:"10:00",slots:[{date:upcoming,time:"10:00"},{date:upcoming,time:"14:00"},{date:new Date(now.getTime()+8*86400000).toISOString().slice(0,10),time:"11:30"}],mode:"video",status:"pending",createdAt:now.toISOString()}
+  ];
+
+ const next=[...saved,...examples];
+ localStorage.setItem(actionKey,JSON.stringify(next));
+ return next;
+}
+
 export default function Applications(){
  const en=useSiteLanguage()==="en";
  const [items,setItems]=useState<Submission[]>([]);
@@ -43,7 +66,7 @@ export default function Applications(){
  const [answers,setAnswers]=useState<Record<string,string>>({});
  const [selectedSlots,setSelectedSlots]=useState<Record<string,number>>({});
  useEffect(()=>{
-  const refresh=()=>{try{const context=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");const active=context?.kind==="demo"&&context?.role==="candidate";setQa(active);setItems(active?load():[]);const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");setActions(active&&Array.isArray(raw)?raw:[])}catch{setItems([])}};
+  const refresh=()=>{try{const context=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");const active=context?.kind==="demo"&&context?.role==="candidate";setQa(active);const entries=active?load():[];setItems(entries);setActions(active?loadQaActions(entries):[])}catch{setItems([])}};
   refresh();window.addEventListener("focus",refresh);window.addEventListener("storage",refresh);
   return()=>{window.removeEventListener("focus",refresh);window.removeEventListener("storage",refresh)}
  },[]);
@@ -60,29 +83,12 @@ export default function Applications(){
    setActions(next);
   }catch{}
  }
- function demoActions(){
-  const first=items[0];if(!first)return;
-  const profiles=JSON.parse(localStorage.getItem("how-qa-candidate-profiles-v2")||"[]");
-  const selected=Array.isArray(profiles)?profiles.find((x:{id:string})=>x.id===localStorage.getItem("how-qa-selected-candidate-id"))||profiles[0]:null;
-  const candidateId=selected?.id||"qa-noa-levi";
-  const now=new Date();
-  const upcoming=new Date(now.getTime()+7*86400000).toISOString().slice(0,10);
-  const examples:QaAction[]=[
-   {id:"demo-question-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"question",message:"נשמח לשמוע על ניסיון בעבודה עם לקוחות ועל מערכות השירות שבהן השתמשת.",status:"pending",createdAt:now.toISOString()},
-   {id:"demo-meeting-"+candidateId+"-"+first.jobId,candidateId,sourceJobId:first.jobId,kind:"meeting",message:"נשמח להזמינך לשיחת היכרות קצרה. אנא אשרי את המועד או דחי את ההזמנה.",date:upcoming,time:"10:00",slots:[{date:upcoming,time:"10:00"},{date:upcoming,time:"14:00"},{date:new Date(now.getTime()+8*86400000).toISOString().slice(0,10),time:"11:30"}],mode:"video",status:"pending",createdAt:now.toISOString()}
-  ];
-  try{
-   const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
-   const list:QaAction[]=Array.isArray(raw)?raw:[];
-   const next=[...list.filter(x=>!x.id.startsWith("demo-meeting-"+candidateId+"-"+first.jobId)),...examples.filter(x=>x.kind==="meeting"||!list.some(a=>a.id===x.id))];
-   localStorage.setItem(actionKey,JSON.stringify(next));setActions(next);
-  }catch{}
- }
+
  return <main className="shell"><nav className="nav"><Link className="brand" href="/">HOW?</Link><div className="navlinks candidateTabs"><Link href="/candidate/jobs">{en?"Jobs":"משרות"}</Link><b>{en?"My applications":"המועמדויות שלי"}</b><Link href="/candidate/profile">{en?"My profile":"הפרופיל שלי"}</Link></div></nav>
  <section style={{padding:"28px 0 65px",maxWidth:900,margin:"auto",display:"grid",gap:13}}>
  <h1 style={{fontSize:27,margin:"0 0 5px"}}>{en?"My applications":"המועמדויות שלי"}</h1>
  {qa&&<p style={{fontSize:12,color:"#755e3e",background:"#fff7e6",padding:12,borderRadius:10,margin:0}}>QA — מעקב אחר סטטוס המגייסת באותו דפדפן. אין עדיין סנכרון בין מכשירים או שליחה למעסיקים אמיתיים.</p>}
- {qa&&items.length>0&&<button type="button" onClick={demoActions} style={{justifySelf:"start",padding:"8px 12px",background:"#f0eafb",color:"#553c8c",border:"1px solid #d8c9ef",borderRadius:9,cursor:"pointer"}}>הצגת דמו: שאלת מגייסת והזמנה לראיון</button>}
+
  {items.length?items.map(item=>{const status=statuses[item.status]||statuses.review;const profiles=JSON.parse(typeof window!=="undefined"?localStorage.getItem("how-qa-candidate-profiles-v2")||"[]":"[]");const selected=Array.isArray(profiles)?profiles.find((x:{id:string})=>x.id===localStorage.getItem("how-qa-selected-candidate-id"))||profiles[0]:null;const cid=selected?.id||"qa-noa-levi";const jobActions=actions.filter(x=>x.sourceJobId===item.jobId&&x.candidateId===cid);return <article className="choice" key={item.id} style={{margin:0,padding:19,display:"grid",gap:11}}>
  <div style={{display:"flex",alignItems:"start",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
  <div><h2 style={{fontSize:18,margin:"0 0 5px"}}>{item.title}</h2><small>{item.company} · הוגשה ב־{new Date(item.submittedAt).toLocaleDateString("he-IL")}</small></div>
