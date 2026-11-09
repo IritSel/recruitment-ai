@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import {useEffect,useState} from "react";
-import {getSupabase} from "../../lib/supabase";
-import {useSiteLanguage} from "../../components/useSiteLanguage";
+import {getSupabase} from "../lib/supabase";
+import {useSiteLanguage} from "../components/useSiteLanguage";
 type Account={id:string;email:string;firstName:string;lastName:string;createdAt:string;lastSignInAt:string|null;emailConfirmedAt:string|null;provider:string;bannedUntil:string|null};
 type AdminResponse={users?:Account[];total?:number|null;page?:number;hasNext?:boolean;error?:string};
 const localDate=(value:string|null,en:boolean)=>value?new Date(value).toLocaleString(en?"en-US":"he-IL",{dateStyle:"medium",timeStyle:"short"}):"—";
