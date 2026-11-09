@@ -2,7 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useSiteLanguage} from "../../components/useSiteLanguage";
-type QaAction={demo?:boolean;id:string;candidateId:string;sourceJobId:string;kind:"question"|"meeting";message:string;date?:string;time?:string;mode?:string;slots?:{date:string;time:string}[];selectedSlot?:{date:string;time:string};status:"pending"|"answered"|"accepted"|"declined";response?:string;createdAt:string};
+type QaAction={demo?:boolean;id:string;candidateId:string;sourceJobId:string;kind:"question"|"meeting";message:string;date?:string;time?:string;mode?:string;slots?:{date:string;time:string}[];selectedSlot?:{date:string;time:string};recruiterConfirmedAt?:string;status:"pending"|"answered"|"accepted"|"declined";response?:string;createdAt:string};
 type Submission={id:string;jobId:string;title:string;company:string;status:string;submittedAt:string};
 type RecruiterApplication={candidateId:string;jobId:string;sourceJobId?:string;status:string;submittedAt?:string;candidateName?:string};
 const key="how-qa-candidate-applications-v1";
@@ -81,7 +81,7 @@ export default function Applications(){
   try{
    const raw=JSON.parse(localStorage.getItem(actionKey)||"[]");
    const list:QaAction[]=Array.isArray(raw)?raw:[];
-   const next=list.map(x=>x.id===action.id?{...x,status,selectedSlot:status==="accepted"?slot:undefined,response:status==="answered"?value:status==="declined"?"המועמדת ביקשה הצעת מועדים נוספים":"המועמדת בחרה מועד ואישרה את הראיון"}:x);
+   const next=list.map(x=>x.id===action.id?{...x,status,recruiterConfirmedAt:undefined,selectedSlot:status==="accepted"?slot:undefined,response:status==="answered"?value:status==="declined"?"המועמדת ביקשה הצעת מועדים נוספים":"המועמדת בחרה מועד ואישרה את הראיון"}:x);
    localStorage.setItem(actionKey,JSON.stringify(next));
    setActions(next);
   }catch{}
@@ -107,7 +107,7 @@ export default function Applications(){
  {jobActions.some(x=>x.status==="pending")&&<span style={{fontSize:11,background:"#f0eafb",borderRadius:7,padding:"5px 8px",color:"#5a3d91"}}>{jobActions.filter(x=>x.status==="pending").length} פעולות ממתינות</span>}
  </div>
  {jobActions.map(action=><div key={action.id} style={{border:"1px solid #e9e0f3",borderRadius:10,padding:"11px 12px",background:"#fff",display:"grid",gap:8}}>
- <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"center",flexWrap:"wrap"}}><strong style={{fontSize:13}}>{action.kind==="question"?"שאלה מהמגייסת":"בחירת מועד לראיון"}{(action.demo||action.id.startsWith("demo-"))&&<span style={{fontSize:10,color:"#827094",fontWeight:400,marginInlineStart:8}}>דוגמת QA</span>}</strong><span style={{fontSize:11,color:"#685d82"}}>{action.status==="pending"?"ממתין לתגובתך":action.status==="answered"?"נשלחה תשובה":action.status==="accepted"?"המועד אושר":"ממתינים להצעה חלופית"}</span></div>
+ <div style={{display:"flex",justifyContent:"space-between",gap:8,alignItems:"center",flexWrap:"wrap"}}><strong style={{fontSize:13}}>{action.kind==="question"?"שאלה מהמגייסת":"בחירת מועד לראיון"}{(action.demo||action.id.startsWith("demo-"))&&<span style={{fontSize:10,color:"#827094",fontWeight:400,marginInlineStart:8}}>דוגמת QA</span>}</strong><span style={{fontSize:11,color:"#685d82"}}>{action.status==="pending"?"ממתין לתגובתך":action.status==="answered"?"נשלחה תשובה":action.status==="accepted"?(action.recruiterConfirmedAt?"הראיון אושר":"ממתין לאישור המגייסת"):"ממתינים להצעה חלופית"}</span></div>
  <p style={{margin:0,fontSize:12,lineHeight:1.55}}>{action.message}</p>
  {action.kind==="question"?(action.status==="pending"?<details style={{borderRadius:8,background:"#faf8ff",padding:"7px 9px"}}><summary style={{cursor:"pointer",fontWeight:650,fontSize:12,color:"#5d4297"}}>כתיבת תשובה</summary><div style={{display:"grid",gap:8,paddingTop:8}}><textarea aria-label="תשובה למגייסת" rows={2} value={answers[action.id]||""} onChange={e=>setAnswers(p=>({...p,[action.id]:e.target.value}))} placeholder="כתבי כאן תשובה למגייסת" style={{border:"1px solid #d9cceb",borderRadius:8,padding:8,font:"inherit",width:"100%",fontSize:12}}/><button type="button" disabled={!answers[action.id]?.trim()} onClick={()=>respond(action,"answered")} style={{justifySelf:"start",padding:"7px 12px",border:0,background:"#6944a7",color:"white",borderRadius:8,cursor:"pointer",fontSize:12}}>שליחת תשובה</button></div></details>:<p style={{margin:0,color:"#26725d",fontSize:12}}>התשובה נשלחה: {action.response||""}</p>):<>
  <span style={{fontSize:12,color:"#665881"}}>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · בחרי את המועד המתאים לך</span>
@@ -123,7 +123,7 @@ export default function Applications(){
  <button type="button" className="button" disabled={selectedSlots[action.id]===undefined} onClick={()=>{const all=action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[];respond(action,"accepted",all[selectedSlots[action.id]])}} style={{justifySelf:"start",fontSize:12,padding:"8px 14px"}}>אישור ושליחת המועד למגייסת</button>
  <button type="button" onClick={()=>respond(action,"declined")} style={{justifySelf:"start",border:0,background:"transparent",color:"#6c5198",textDecoration:"underline",fontSize:11,cursor:"pointer",padding:2}}>אף אחד מהמועדים לא מתאים</button>
  </>:<div role="status" style={{background:action.status==="accepted"?"#eaf7f0":"#f6f3fc",borderRadius:9,padding:"11px 13px",display:"grid",gap:4,color:action.status==="accepted"?"#21684e":"#625478",fontSize:12}}>
- {action.status==="accepted"?<><strong>✓ הראיון אושר — המועד שנבחר נשמר</strong><span>{action.selectedSlot?new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+action.selectedSlot.time:"המועד נשמר"}</span><span>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · אישור הבחירה הועבר למגייסת בסביבת QA באותו דפדפן.</span></>:<span>נשלחה בקשה למועדים חלופיים. המגייסת תצטרך לשלוח הזמנה חדשה.</span>}
+ {action.status==="accepted"?<><strong>{action.recruiterConfirmedAt?"✓ הראיון אושר על ידי המגייסת":"המועד שבחרת נשמר — ממתין לאישור המגייסת"}</strong><span>{action.selectedSlot?new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+action.selectedSlot.time:"המועד נשמר"}</span><span>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · {action.recruiterConfirmedAt?"המגייסת אישרה סופית את הראיון.":"בחירתך נשלחה למגייסת בסביבת QA באותו דפדפן. אישור סופי טרם התקבל."}</span></>:<span>נשלחה בקשה למועדים חלופיים. המגייסת תצטרך לשלוח הזמנה חדשה.</span>}
  </div>}
  </>}
  </div>)}
