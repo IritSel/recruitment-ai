@@ -8,6 +8,7 @@ type RecruiterApplication={candidateId:string;jobId:string;sourceJobId?:string;s
 const key="how-qa-candidate-applications-v1";
 const recruiterKey="how-qa-applications";
 const actionKey="how-qa-application-actions-v1";
+const slotDraftKey="how-qa-interview-selected-slots-v1";
 const mappings:Record<string,string>={"1":"qa-demo-service","2":"qa-demo-service","3":"qa-demo-team","4":"qa-demo-backoffice"};
 const statuses:Record<string,{label:string;step:number;detail:string}>={
  review:{label:"התקבלה — ממתינה לבדיקה",step:1,detail:"המועמדות התקבלה בתור הבדיקות של המגייסת."},
@@ -66,11 +67,13 @@ export default function Applications(){
  const [answers,setAnswers]=useState<Record<string,string>>({});
  const [selectedSlots,setSelectedSlots]=useState<Record<string,number>>({});
  useEffect(()=>{
+  try{const saved=JSON.parse(localStorage.getItem(slotDraftKey)||"{}");if(saved&&typeof saved==="object"&&!Array.isArray(saved))setSelectedSlots(saved)}catch{}
   const refresh=()=>{try{const context=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");const active=context?.kind==="demo"&&context?.role==="candidate";setQa(active);const entries=active?load():[];setItems(entries);setActions(active?loadQaActions(entries):[])}catch{setItems([])}};
   refresh();window.addEventListener("focus",refresh);window.addEventListener("storage",refresh);
   return()=>{window.removeEventListener("focus",refresh);window.removeEventListener("storage",refresh)}
  },[]);
 
+ function chooseSlot(actionId:string,index:number){setSelectedSlots(p=>{const next={...p,[actionId]:index};try{localStorage.setItem(slotDraftKey,JSON.stringify(next))}catch{}return next})}
  function respond(action:QaAction,status:"answered"|"accepted"|"declined",slot?:{date:string;time:string}){
   const value=(answers[action.id]||"").trim();
   if(status==="answered"&&!value)return;
@@ -110,11 +113,18 @@ export default function Applications(){
  <span style={{fontSize:12,color:"#665881"}}>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · בחרי את המועד המתאים לך</span>
  {action.status==="pending"?<>
  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(145px,1fr))",gap:7}}>
- {(action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[]).map((slot,i)=><button type="button" key={slot.date+"-"+slot.time+"-"+i} onClick={()=>setSelectedSlots(p=>({...p,[action.id]:i}))} aria-pressed={selectedSlots[action.id]===i} style={{border:selectedSlots[action.id]===i?"2px solid #704cac":"1px solid #d8c8eb",borderRadius:9,padding:"10px 8px",background:selectedSlots[action.id]===i?"#eee8fa":"#fbf9ff",color:"#442e79",cursor:"pointer",fontSize:12,fontWeight:650,textAlign:"center"}}>{new Date(slot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"short",day:"numeric",month:"short"})} · {slot.time}<span style={{display:"block",fontSize:10,fontWeight:400,marginTop:4}}>{selectedSlots[action.id]===i?"נבחר ✓":"בחירת מועד"}</span></button>)}
+ {(action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[]).map((slot,i)=><button type="button" key={slot.date+"-"+slot.time+"-"+i} onClick={()=>chooseSlot(action.id,i)} aria-pressed={selectedSlots[action.id]===i} style={{border:selectedSlots[action.id]===i?"2px solid #704cac":"1px solid #d8c8eb",borderRadius:9,padding:"10px 8px",background:selectedSlots[action.id]===i?"#eee8fa":"#fbf9ff",color:"#442e79",cursor:"pointer",fontSize:12,fontWeight:650,textAlign:"center"}}>{new Date(slot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"short",day:"numeric",month:"short"})} · {slot.time}<span style={{display:"block",fontSize:10,fontWeight:400,marginTop:4}}>{selectedSlots[action.id]===i?"נבחר ✓":"בחירת מועד"}</span></button>)}
  </div>
+ {selectedSlots[action.id]!==undefined&&(()=>{
+ const available=action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[];
+ const picked=available[selectedSlots[action.id]];
+ return picked?<div role="status" style={{fontSize:12,border:"1px solid #d9c9ea",background:"#f7f3ff",borderRadius:8,padding:"9px 12px",color:"#452e7d"}}><strong>המועד שבחרת:</strong> {new Date(picked.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} בשעה {picked.time}<span style={{display:"block",fontSize:11,marginTop:3}}>הבחירה נשמרה. יש לאשר כדי לשלוח אותה למגייסת.</span></div>:null;
+ })()}
  <button type="button" className="button" disabled={selectedSlots[action.id]===undefined} onClick={()=>{const all=action.slots&&action.slots.length?action.slots:action.date&&action.time?[{date:action.date,time:action.time}]:[];respond(action,"accepted",all[selectedSlots[action.id]])}} style={{justifySelf:"start",fontSize:12,padding:"8px 14px"}}>אישור ושליחת המועד למגייסת</button>
  <button type="button" onClick={()=>respond(action,"declined")} style={{justifySelf:"start",border:0,background:"transparent",color:"#6c5198",textDecoration:"underline",fontSize:11,cursor:"pointer",padding:2}}>אף אחד מהמועדים לא מתאים</button>
- </>:<p style={{fontSize:12,color:action.status==="accepted"?"#26725d":"#6b607d",margin:0}}>{action.status==="accepted"?(action.selectedSlot?"אישרת ראיון לתאריך "+new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL")+" בשעה "+action.selectedSlot.time:"הראיון אושר"):"נשלחה בקשה למועדים חלופיים. המגייסת תצטרך לשלוח הזמנה חדשה."}</p>}
+ </>:<div role="status" style={{background:action.status==="accepted"?"#eaf7f0":"#f6f3fc",borderRadius:9,padding:"11px 13px",display:"grid",gap:4,color:action.status==="accepted"?"#21684e":"#625478",fontSize:12}}>
+ {action.status==="accepted"?<><strong>✓ הראיון אושר — המועד שנבחר נשמר</strong><span>{action.selectedSlot?new Date(action.selectedSlot.date+"T12:00:00").toLocaleDateString("he-IL",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+" · "+action.selectedSlot.time:"המועד נשמר"}</span><span>{action.mode==="video"?"ראיון וידאו":action.mode==="phone"?"ראיון טלפוני":"ראיון פרונטלי"} · אישור הבחירה הועבר למגייסת בסביבת QA באותו דפדפן.</span></>:<span>נשלחה בקשה למועדים חלופיים. המגייסת תצטרך לשלוח הזמנה חדשה.</span>}
+ </div>}
  </>}
  </div>)}
  </section>}
