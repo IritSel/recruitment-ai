@@ -2,7 +2,7 @@
 import Link from "next/link";
 import {useEffect,useState} from "react";
 import {useParams} from "next/navigation";
-type Submission={id:string;jobId:string;title:string;company:string;status:string;submittedAt:string};
+type Submission={candidateId?:string;id:string;jobId:string;title:string;company:string;status:string;submittedAt:string};
 const data:Record<string,{title:string;city:string;description:string}>={"1":{title:"נציג/ת שירות לקוחות",city:"באר שבע",description:"שירות לקוחות, עבודה בצוות ומענה לפניות."},"2":{title:"נציג/ת שירות ומכירה",city:"באר שבע",description:"שירות לקוחות ומכירות."},"3":{title:"אחמ״ש/ית מוקד שירות",city:"אשדוד",description:"ניהול משמרת מוקד ותמיכה בצוות."},"4":{title:"רכז/ת משאבי אנוש",city:"תל אביב",description:"תמיכה בתהליכי גיוס וקליטת עובדים."}};
 const key="how-qa-candidate-applications-v1";
 const recruiterKey="how-qa-applications";
@@ -10,7 +10,7 @@ const recruiterJobIds:Record<string,string>={"1":"qa-demo-service","2":"qa-demo-
 export default function JobDetails(){
  const params=useParams();const id=String(params?.id||"1");const job=data[id];
  const [qa,setQa]=useState(false),[sent,setSent]=useState(false),[q,setQ]=useState(false),[no,setNo]=useState(false),[reason,setReason]=useState("");
- useEffect(()=>{try{const x=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");setQa(x?.kind==="demo"&&x?.role==="candidate");const stored=JSON.parse(localStorage.getItem(key)||"[]") as Submission[];setSent(stored.some(item=>item.jobId===id))}catch{}},[id]);
+ useEffect(()=>{try{const x=JSON.parse(sessionStorage.getItem("qa-demo-context")||"null");setQa(x?.kind==="demo"&&x?.role==="candidate");const stored=JSON.parse(localStorage.getItem(key)||"[]") as Submission[];const candidateId=localStorage.getItem("how-qa-selected-candidate-id")||"qa-noa-levi";setSent(Array.isArray(stored)&&stored.some(item=>item.jobId===id&&(item.candidateId===candidateId||(!item.candidateId&&candidateId==="qa-noa-levi"))))}catch{}},[id]);
 
  function submit(){
  if(!qa||!job)return;
@@ -22,8 +22,8 @@ export default function JobDetails(){
   const candidateId=candidate?.id||"qa-noa-levi";
   const selectedCv=Array.isArray(candidate?.cv)?candidate.cv.find((x:{primary?:boolean})=>x.primary)||candidate.cv[0]:null;
   const now=new Date().toISOString();
-  if(!applications.some((x:Submission)=>x.jobId===id)){
-   applications.unshift({id:"qa-"+id,jobId:id,title:job.title,company:"חברת דמו א׳",status:"review",submittedAt:now});
+  if(!applications.some((x:Submission)=>x.jobId===id&&(x.candidateId===candidateId||(!x.candidateId&&candidateId==="qa-noa-levi")))){
+   applications.unshift({id:"qa-"+id+"-"+candidateId,candidateId,jobId:id,title:job.title,company:"חברת דמו א׳",status:"review",submittedAt:now});
    localStorage.setItem(key,JSON.stringify(applications));
   }
   const stored=JSON.parse(localStorage.getItem(recruiterKey)||"[]");
